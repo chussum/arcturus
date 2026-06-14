@@ -59,4 +59,57 @@
     });
     block.appendChild(btn);
   });
+
+  // GitHub stars — fill the nav pill, cached in localStorage (1h TTL) to spare
+  // the unauthenticated API rate limit. Fails silently to the "GitHub" fallback.
+  const starEl = document.querySelector('[data-gh-stars]');
+  if (starEl) {
+    const REPO = 'chussum/arcturus';
+    const CACHE_KEY = 'arcturus-gh-stars';
+    const TTL = 60 * 60 * 1000;
+    const fmt = (n) =>
+      n >= 1000
+        ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k'
+        : String(n);
+
+    // only replace the "GitHub" label once there's at least one star —
+    // "★ 0" reads weaker than the plain label.
+    const apply = (n) => {
+      if (typeof n === 'number' && n > 0) starEl.textContent = fmt(n);
+    };
+
+    const cached = (() => {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const { v, t } = JSON.parse(raw);
+        if (typeof v !== 'number' || Date.now() - t > TTL) return null;
+        return v;
+      } catch {
+        return null;
+      }
+    })();
+
+    if (cached != null) {
+      apply(cached);
+    } else {
+      fetch(`https://api.github.com/repos/${REPO}`, {
+        headers: { Accept: 'application/vnd.github+json' },
+      })
+        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+        .then((data) => {
+          const n = data.stargazers_count;
+          if (typeof n !== 'number') return;
+          apply(n);
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ v: n, t: Date.now() }));
+          } catch {
+            /* storage unavailable (private mode) — count still shown this visit */
+          }
+        })
+        .catch(() => {
+          /* offline / rate-limited — leave the "GitHub" fallback in place */
+        });
+    }
+  }
 })();

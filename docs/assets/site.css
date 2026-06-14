@@ -167,6 +167,38 @@ td code {
   color: var(--text-faint);
 }
 
+/* GitHub stars pill — count filled in by site.js (progressive enhancement) */
+.gh-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--surface-1);
+  color: var(--text-muted);
+  transition: color 150ms var(--ease), border-color 150ms var(--ease),
+    background 150ms var(--ease);
+}
+
+.gh-star:hover {
+  color: var(--text);
+  border-color: var(--hairline-strong);
+  background: var(--surface-2);
+}
+
+.gh-star .gh-ico {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.gh-star .gh-count {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
 /* ---------------------------------------------------------- hero */
 
 .hero {
