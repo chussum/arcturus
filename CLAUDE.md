@@ -77,6 +77,7 @@ cd apps/api && bunx drizzle-kit generate     # 스키마 변경 후 마이그레
 
 ## 함정 (시간을 날려먹은 것들)
 
+- **`.gitignore` 디렉터리 패턴은 반드시 앵커(`/logs/`)** — 비앵커 `logs/`는 트리 어느 깊이의 `logs` 폴더든 매칭해 `apps/api/src/modules/logs/`(SSE 로그 컨트롤러 소스)까지 무시했고, 그 결과 소스 파일이 커밋에서 통째로 누락 → fresh 체크아웃 부팅이 `Cannot find module './modules/logs/logs.module'`로 즉사(원개발 머신은 ignore된 채 로컬에 있어 멀쩡, 새 머신에서만 헬스체크 실패로 발현). 루트 전용으로 무시하려면 앞에 `/`를 붙일 것. 새 ignore 규칙 추가 시 `git check-ignore -v <소스경로>`로 소스가 안 걸리는지 확인.
 - **Biome `useImportType`은 apps/api에서 off** — NestJS DI는 런타임 클래스 참조가 필요해서 `import type` 변환이 DI를 깨뜨림. `--write` 후 의심되면 서버 부팅으로 확인.
 - **Bun isolated install**: 전이 의존성이 자동 호이스팅되지 않음. "Cannot find module X"가 나오면 해당 워크스페이스에 `bun add X` (예: multer, @wyw-in-js/babel-preset, bun-types).
 - **Next 16 dev는 localhost 외 origin의 dev 내부 요청을 조용히 차단** → hydration이 에러 없이 실패. `allowedDevOrigins`에 `127.0.0.1` 설정돼 있음. LAN 접근은 `ARCTURUS_DEV_ORIGINS`.

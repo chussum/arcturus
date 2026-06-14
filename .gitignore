@@ -26,7 +26,9 @@ data/
 
 # logs
 *.log
-logs/
+# Anchored to repo root: a bare `logs/` also matches source dirs like
+# apps/api/src/modules/logs/ and silently drops them from commits.
+/logs/
 
 .omc
 
