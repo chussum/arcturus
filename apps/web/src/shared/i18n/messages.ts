@@ -6,6 +6,7 @@ const en = {
   common: {
     copy: 'copy',
     copied: 'Copied to clipboard',
+    copyFailed: 'Copy failed — select and copy manually',
     cancel: 'Cancel',
   },
   nav: {
@@ -192,6 +193,7 @@ const ko: Messages = {
   common: {
     copy: '복사',
     copied: '클립보드에 복사했어요',
+    copyFailed: '복사하지 못했어요 — 직접 선택해 복사해 주세요',
     cancel: '취소',
   },
   nav: {

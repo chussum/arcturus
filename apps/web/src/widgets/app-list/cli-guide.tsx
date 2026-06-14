@@ -4,6 +4,7 @@ import { styled } from '@linaria/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useI18n } from '../../shared/i18n/locale-context';
+import { copyText } from '../../shared/lib/clipboard';
 import { colors, font, spacing, typography } from '../../shared/styles/tokens';
 import { ArrowLink, Card, CodeBlock, Eyebrow, Tagline, TextButton } from '../../shared/ui';
 import { useToast } from '../../shared/ui/toast';
@@ -59,9 +60,9 @@ function CopyableCode({ command }: { command: string }) {
       <CodeBlock>{command}</CodeBlock>
       <TextButton
         type="button"
-        onClick={() => {
-          void navigator.clipboard.writeText(command);
-          notify('success', t.common.copied);
+        onClick={async () => {
+          const ok = await copyText(command);
+          notify(ok ? 'success' : 'error', ok ? t.common.copied : t.common.copyFailed);
         }}
       >
         {t.common.copy}

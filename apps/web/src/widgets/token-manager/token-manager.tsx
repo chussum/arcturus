@@ -4,6 +4,7 @@ import { styled } from '@linaria/react';
 import { type FormEvent, useState } from 'react';
 import { createToken, listTokens, revokeToken } from '../../entities/token/api';
 import { useI18n } from '../../shared/i18n/locale-context';
+import { copyText } from '../../shared/lib/clipboard';
 import { useAsyncAction } from '../../shared/lib/use-async-action';
 import { usePoll } from '../../shared/lib/use-poll';
 import { colors, font, fontStack, spacing, typography } from '../../shared/styles/tokens';
@@ -134,9 +135,9 @@ export function TokenManagerWidget() {
                   {t.tokens.copyOnce(fresh.name)}{' '}
                   <TextButton
                     type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(fresh.token);
-                      notify('success', t.common.copied);
+                    onClick={async () => {
+                      const ok = await copyText(fresh.token);
+                      notify(ok ? 'success' : 'error', ok ? t.common.copied : t.common.copyFailed);
                     }}
                   >
                     {t.common.copy}

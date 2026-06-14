@@ -7,6 +7,7 @@ import { createInvite, deleteInvite, listInvites } from '../../entities/invite/a
 import { createResetLink, deleteUser, listUsers } from '../../entities/user/api';
 import { useSession } from '../../features/auth/session-context';
 import { useI18n } from '../../shared/i18n/locale-context';
+import { copyText } from '../../shared/lib/clipboard';
 import { useAsyncAction } from '../../shared/lib/use-async-action';
 import { usePoll } from '../../shared/lib/use-poll';
 import { colors, font, fontStack, spacing, typography } from '../../shared/styles/tokens';
@@ -115,9 +116,9 @@ export function TeamWidget() {
                 <InviteCode>{signupLink(justCreated)}</InviteCode>
                 <TextButton
                   type="button"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(signupLink(justCreated));
-                    notify('success', t.common.copied);
+                  onClick={async () => {
+                    const ok = await copyText(signupLink(justCreated));
+                    notify(ok ? 'success' : 'error', ok ? t.common.copied : t.common.copyFailed);
                   }}
                 >
                   {t.common.copy}
@@ -136,9 +137,9 @@ export function TeamWidget() {
                 <InviteCode>{resetLink.url}</InviteCode>
                 <TextButton
                   type="button"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(resetLink.url);
-                    notify('success', t.common.copied);
+                  onClick={async () => {
+                    const ok = await copyText(resetLink.url);
+                    notify(ok ? 'success' : 'error', ok ? t.common.copied : t.common.copyFailed);
                   }}
                 >
                   {t.common.copy}
