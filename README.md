@@ -60,7 +60,7 @@ git clone <repo-url> && cd arcturus
 bun run server:up
 ```
 
-That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. On the first run `server:up` asks you to set the admin password right in the terminal — or set `ARCTURUS_ADMIN_PASSWORD` beforehand to skip the prompt. (A non-interactive first run instead prints a generated password once to the logs, `bun run server:logs`.)
+That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. On the first run `server:up` asks you to set the admin password right in the terminal — or set `ARCTURUS_ADMIN_PASSWORD` beforehand to skip the prompt.
 
 | Command | What it does |
 |---|---|
