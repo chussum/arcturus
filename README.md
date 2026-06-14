@@ -60,7 +60,7 @@ git clone <repo-url> && cd arcturus
 bun run server:up
 ```
 
-That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. The first run prints the admin password once to the logs (`bun run server:logs`), or you can set `ARCTURUS_ADMIN_PASSWORD` beforehand.
+That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. On the first run `server:up` asks you to set the admin password right in the terminal — or set `ARCTURUS_ADMIN_PASSWORD` beforehand to skip the prompt. (A non-interactive first run instead prints a generated password once to the logs, `bun run server:logs`.)
 
 | Command | What it does |
 |---|---|
@@ -127,7 +127,7 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-The secrets aren't in this table on purpose. `ARCTURUS_JWT_SECRET` and `ARCTURUS_ENV_KEY` are managed in the dotenvx-encrypted `.env.secrets` at the repo root via `bun run secrets:init` (values there take precedence over `apps/api/.env`), and `ARCTURUS_ADMIN_PASSWORD` is set via env or printed once to the logs on first run. All three are generated automatically for local dev and **required in production** — see Security notes.
+The secrets aren't in this table on purpose. `ARCTURUS_JWT_SECRET` and `ARCTURUS_ENV_KEY` are managed in the dotenvx-encrypted `.env.secrets` at the repo root via `bun run secrets:init` (values there take precedence over `apps/api/.env`), and `ARCTURUS_ADMIN_PASSWORD` is set via env, prompted in the terminal on first run, or printed once to the logs when that first run is non-interactive. All three are generated automatically for local dev and **required in production** — see Security notes.
 
 | Env var | Default | Description |
 |---|---|---|

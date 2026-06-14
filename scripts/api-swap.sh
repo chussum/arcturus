@@ -88,6 +88,16 @@ mkdir -p logs
 # Env vars set only in the parent shell are NOT persisted across pm2 autorestart.
 # with-secrets.sh re-fetches the macOS Keychain private key on every start.
 TMPCONF=$(mktemp /tmp/arcturus-api-XXXXXX.json)
+# When the operator (or server-up.sh's first-run prompt) provided an admin
+# password, pass it through the env block — parent-shell env alone is NOT
+# persisted by pm2 (see note above). Only needed for the very first boot (the
+# seeder ignores it once an admin exists). JSON-encode so any character is safe.
+ADMIN_PW_ENTRY=""
+if [ -n "${ARCTURUS_ADMIN_PASSWORD:-}" ]; then
+  ADMIN_PW_JSON=$(bun -e 'process.stdout.write(JSON.stringify(process.env.ARCTURUS_ADMIN_PASSWORD))')
+  ADMIN_PW_ENTRY=",
+    \"ARCTURUS_ADMIN_PASSWORD\": $ADMIN_PW_JSON"
+fi
 # DATA_DIR must not contain characters that would break JSON (spaces, quotes, backslashes).
 # In practice this is always a simple absolute path set by the operator.
 cat > "$TMPCONF" << CONF
@@ -109,7 +119,7 @@ cat > "$TMPCONF" << CONF
     "ARCTURUS_LISTEN_PORT": "$CTRL_PORT",
     "ARCTURUS_LISTEN_APPS_PORT": "$APPS_INT_PORT",
     "ARCTURUS_TRUST_PROXY": "loopback",
-    "ARCTURUS_DATA_DIR": "$DATA_DIR"
+    "ARCTURUS_DATA_DIR": "$DATA_DIR"$ADMIN_PW_ENTRY
   }
 }]
 CONF

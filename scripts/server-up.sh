@@ -90,6 +90,34 @@ done
 mkdir -p logs
 chmod 700 logs
 
+# 4.5 First-run admin password ------------------------------------------------
+# On the very first boot there's no admin account yet. pm2 has no TTY, so the
+# seeder can't prompt there — instead we ask here, in the shell, and hand the
+# value to the API via api-swap.sh's env block. Skipped once the DB exists, when
+# the password is already provided, or when stdin isn't a terminal (CI).
+DB_DIR="${ARCTURUS_DATA_DIR:-apps/api/data}"
+if [ ! -f "$DB_DIR/arcturus.db" ] \
+   && [ -t 0 ] \
+   && [ -z "${ARCTURUS_ADMIN_PASSWORD:-}" ] \
+   && ! grep -qE '^[[:space:]]*ARCTURUS_ADMIN_PASSWORD=' apps/api/.env 2>/dev/null; then
+  say "관리자 계정이 없습니다 — 어드민 비밀번호를 설정하세요 / No admin account yet — set the admin password."
+  while true; do
+    read -rsp "어드민 비밀번호를 설정하세요 / Set the admin password: " ADMIN_PW; echo
+    if [ "${#ADMIN_PW}" -lt 8 ]; then
+      warn "비밀번호는 8자 이상이어야 합니다 / Password must be at least 8 characters."
+      continue
+    fi
+    read -rsp "비밀번호 확인 / Confirm password: " ADMIN_PW2; echo
+    if [ "$ADMIN_PW" != "$ADMIN_PW2" ]; then
+      warn "비밀번호가 일치하지 않습니다 / Passwords do not match."
+      continue
+    fi
+    export ARCTURUS_ADMIN_PASSWORD="$ADMIN_PW"
+    unset ADMIN_PW ADMIN_PW2
+    break
+  done
+fi
+
 # 5. API (blue-green, managed by api-swap.sh) ---------------------------------
 say "pm2로 서버 기동 중..."
 

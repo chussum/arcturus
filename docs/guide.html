@@ -59,7 +59,7 @@ bun run server:up"><span class="accent">$</span> git clone https://github.com/ch
 <span class="accent">$</span> bun run server:up</pre>
         </div>
         <p class="reveal">That’s it — it installs dependencies, builds the dashboard and starts everything under pm2, all idempotent. Open <code>http://&lt;host&gt;:7777</code>.</p>
-        <div class="callout reveal">On the first run the <strong>admin password is printed once</strong> to the logs — grab it with <code>bun run server:logs</code>, or set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand.</div>
+        <div class="callout reveal">On the first run, if there's no admin yet, you're <strong>prompted to set the admin password</strong> right in the terminal — or set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand to skip it. A non-interactive first run instead prints a generated password once to the logs (<code>bun run server:logs</code>).</div>
         <h3 class="reveal">Installing Docker (no Docker Desktop needed)</h3>
         <p class="reveal">Arcturus talks to the Docker API socket directly, so Docker Desktop is never required — which matters because Desktop needs a paid subscription at companies with 250+ employees or $10M+ annual revenue. Docker Engine and Colima are free open source for any commercial use.</p>
         <div class="codeblock reveal">
@@ -237,7 +237,7 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
             </tbody>
           </table>
         </div>
-        <div class="callout reveal">The secrets aren’t in this table on purpose. <code>ARCTURUS_JWT_SECRET</code> and <code>ARCTURUS_ENV_KEY</code> are managed in the encrypted <code>.env.secrets</code> via <a href="#setup">Hardening secrets</a>, and <code>ARCTURUS_ADMIN_PASSWORD</code> is set via env or printed once to the logs on first run. All three are generated for local dev and <strong>required in production</strong> — see <a href="#security">Security notes</a>.</div>
+        <div class="callout reveal">The secrets aren’t in this table on purpose. <code>ARCTURUS_JWT_SECRET</code> and <code>ARCTURUS_ENV_KEY</code> are managed in the encrypted <code>.env.secrets</code> via <a href="#setup">Hardening secrets</a>, and <code>ARCTURUS_ADMIN_PASSWORD</code> is set via env, prompted in the terminal on first run, or printed once to the logs when that run is non-interactive. All three are generated for local dev and <strong>required in production</strong> — see <a href="#security">Security notes</a>.</div>
       </div>
     </section>
 
@@ -289,7 +289,7 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
           <pre data-copy="lsof -ti :7777 | xargs kill -9"><span class="accent">$</span> lsof -ti :7777 | xargs kill -9</pre>
         </div>
         <h3 class="reveal">Lost the admin password</h3>
-        <p class="reveal">It’s only printed on the very first boot. Set <code>ARCTURUS_ADMIN_PASSWORD</code> and restart, or check the first-run logs if you still have them (<code>bun run server:logs</code>).</p>
+        <p class="reveal">You set it on the very first boot — interactively in the terminal, or it’s printed once to the logs on a non-interactive run (<code>bun run server:logs</code>). If another admin exists, they can send you a one-time reset link from the Team page.</p>
         <h3 class="reveal">Deploy fails after moving the server</h3>
         <p class="reveal">If you migrated the <code>data/</code> directory but not the env key, container apps with saved env vars can’t decrypt them — restore <code>data/env-key</code> (or your <code>ARCTURUS_ENV_KEY</code>) from backup. If the old machine used <code>secrets:init</code>, copy <code>.env.secrets</code> too and move the Keychain key: read it on the old machine with <code>security find-generic-password -s arcturus-dotenvx -w</code>, then store it on the new one with <code>security add-generic-password -s arcturus-dotenvx -a "$USER" -w "&lt;key&gt;"</code>.</p>
       </div>

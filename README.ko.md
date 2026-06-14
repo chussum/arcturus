@@ -60,7 +60,7 @@ git clone <repo-url> && cd arcturus
 bun run server:up
 ```
 
-설치는 이게 전부입니다. 의존성을 설치하고, 첫 실행이면 대시보드를 빌드하고, pm2로 전부 띄워줍니다. 브라우저에서 `http://<host>:7777`을 열면 끝입니다. 첫 실행이면 admin 비밀번호가 로그에 한 번 출력되고(`bun run server:logs`), 미리 `ARCTURUS_ADMIN_PASSWORD`로 정해둘 수도 있습니다.
+설치는 이게 전부입니다. 의존성을 설치하고, 첫 실행이면 대시보드를 빌드하고, pm2로 전부 띄워줍니다. 브라우저에서 `http://<host>:7777`을 열면 끝입니다. 첫 실행이면 `server:up`이 터미널에서 어드민 비밀번호를 직접 입력받습니다 — 미리 `ARCTURUS_ADMIN_PASSWORD`로 정해두면 프롬프트를 건너뜁니다. (터미널이 아닌 첫 실행은 생성된 비밀번호가 로그에 1회 출력됩니다, `bun run server:logs`.)
 
 | 명령 | 동작 |
 |---|---|
@@ -127,7 +127,7 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-시크릿은 이 표에 일부러 넣지 않았습니다. `ARCTURUS_JWT_SECRET`·`ARCTURUS_ENV_KEY`는 레포 루트의 dotenvx 암호화 `.env.secrets`에서 `bun run secrets:init`으로 관리하고(`.env.secrets` 값이 `apps/api/.env`보다 우선), `ARCTURUS_ADMIN_PASSWORD`는 env로 지정하거나 첫 실행 때 로그에 1회 출력됩니다. 셋 다 로컬 dev에선 자동 생성되고 **프로덕션에선 필수**입니다 — 자세한 건 보안 참고를 보세요.
+시크릿은 이 표에 일부러 넣지 않았습니다. `ARCTURUS_JWT_SECRET`·`ARCTURUS_ENV_KEY`는 레포 루트의 dotenvx 암호화 `.env.secrets`에서 `bun run secrets:init`으로 관리하고(`.env.secrets` 값이 `apps/api/.env`보다 우선), `ARCTURUS_ADMIN_PASSWORD`는 env로 지정하거나, 첫 실행 때 터미널에서 입력받거나, 비대화형 실행이면 로그에 1회 출력됩니다. 셋 다 로컬 dev에선 자동 생성되고 **프로덕션에선 필수**입니다 — 자세한 건 보안 참고를 보세요.
 
 | 환경 변수 | 기본값 | 설명 |
 |---|---|---|
