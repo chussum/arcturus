@@ -196,6 +196,7 @@ if needs_admin_seed \
     fi
     export ARCTURUS_ADMIN_PASSWORD="$ADMIN_PW"
     unset ADMIN_PW ADMIN_PW2
+    ADMIN_PW_PROMPTED=true
     break
   done
 fi
@@ -311,5 +312,7 @@ bunx pm2 status
 IP=$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")
 echo ""
 ok "접속 주소:  http://127.0.0.1:${PORT}  (팀원은 http://${IP}:${PORT})"
-echo "  · 첫 실행이라면 admin 비밀번호가 로그에 1회 출력됩니다:  bun run server:logs"
+if [ "${ADMIN_PW_PROMPTED:-false}" = true ]; then
+  echo "  · admin 계정 비밀번호는 방금 설정한 값입니다 / The admin password is the one you just set."
+fi
 echo "  · 서버 내리기:  bun run server:down    상태 보기:  bun run server:status"
