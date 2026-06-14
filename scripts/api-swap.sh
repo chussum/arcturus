@@ -109,6 +109,7 @@ cat > "$TMPCONF" << CONF
   "interpreter": "bash",
   "autorestart": true,
   "kill_timeout": 15000,
+  "treekill": true,
   "max_memory_restart": "512M",
   "time": true,
   "out_file": "$ROOT/logs/api-$IDLE_COLOR.out.log",

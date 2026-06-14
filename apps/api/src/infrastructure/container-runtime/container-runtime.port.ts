@@ -1,6 +1,8 @@
 export interface RunContainerOptions {
   /** Stable platform-managed name, e.g. arcturus--alice--blog. */
   name: string;
+  /** Owning app id, stamped as a Docker label so orphan containers can be swept. */
+  appId: string;
   imageTag: string;
   /** Host port published on 0.0.0.0; the container's PORT env tells the app where to listen. */
   hostPort: number;
@@ -35,6 +37,14 @@ export abstract class ContainerRuntime {
 
   /** Starts a fresh container, replacing any existing one with the same name. */
   abstract runContainer(options: RunContainerOptions): Promise<string>;
+
+  /**
+   * Lists all platform-managed containers (by the arcturus.managed label),
+   * regardless of running state, so boot reconciliation can sweep orphans whose
+   * owning app row has been deleted. `appId` is null for legacy containers
+   * created before labels existed (those are never swept).
+   */
+  abstract listManaged(): Promise<{ id: string; appId: string | null }[]>;
 
   abstract stopContainer(containerId: string): Promise<void>;
   abstract startContainer(containerId: string): Promise<void>;

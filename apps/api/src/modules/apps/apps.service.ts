@@ -361,6 +361,7 @@ export class AppsService {
     }
     const containerId = await this.runtime.runContainer({
       name: containerNameFor(ownerUsername, app.name),
+      appId: app.id,
       imageTag: imageTagFor(ownerUsername, app.name, deploymentId),
       hostPort: app.assignedPort,
       containerPort: CONTAINER_PORT,

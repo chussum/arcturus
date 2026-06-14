@@ -40,5 +40,41 @@ export class ContainerStateReconciler implements OnApplicationBootstrap {
         );
       }
     }
+
+    await this.sweepOrphans(rows);
+  }
+
+  /**
+   * Removes platform-managed containers whose owning app row no longer exists.
+   * Account/app deletion cleans up containers best-effort; a transient Docker
+   * error there leaves the row gone but the container running forever (its
+   * RestartPolicy survives reboots). Labels created before this feature shipped
+   * have no app-id and are left alone (grandfathered until their next redeploy).
+   */
+  private async sweepOrphans(rows: { id: string }[]): Promise<void> {
+    const liveAppIds = new Set(rows.map((app) => app.id));
+    let managed: { id: string; appId: string | null }[];
+    try {
+      managed = await this.runtime.listManaged();
+    } catch (error) {
+      this.logger.warn(
+        `Could not list managed containers for orphan sweep: ${error instanceof Error ? error.message : error}`,
+      );
+      return;
+    }
+
+    for (const container of managed) {
+      if (!container.appId || liveAppIds.has(container.appId)) continue;
+      try {
+        await this.runtime.removeContainer(container.id);
+        this.logger.log(
+          `Swept orphan container ${container.id} (app ${container.appId} no longer exists)`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Could not sweep orphan container ${container.id}: ${error instanceof Error ? error.message : error}`,
+        );
+      }
+    }
   }
 }

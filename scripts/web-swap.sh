@@ -115,6 +115,7 @@ cat > "$TMPCONF" << CONF
   "interpreter": "none",
   "autorestart": true,
   "kill_timeout": 15000,
+  "treekill": true,
   "time": true,
   "out_file": "$ROOT/logs/web-$IDLE_COLOR.out.log",
   "error_file": "$ROOT/logs/web-$IDLE_COLOR.err.log",

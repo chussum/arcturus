@@ -69,6 +69,7 @@ export class ContainerDeployStrategy extends DeployStrategy {
     await log('Starting container...');
     const runOptions = {
       name: containerNameFor(owner.username, app.name),
+      appId: app.id,
       imageTag,
       containerPort: CONTAINER_PORT,
       memoryBytes,

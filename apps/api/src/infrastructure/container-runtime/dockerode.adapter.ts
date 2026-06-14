@@ -21,6 +21,10 @@ const BUILD_TIMEOUT_MS = 15 * 60 * 1000;
  */
 const APP_NETWORK = 'arcturus-apps';
 
+/** Marks every container we create so boot reconciliation can find/sweep them. */
+const MANAGED_LABEL = 'arcturus.managed';
+const APP_ID_LABEL = 'arcturus.app-id';
+
 @Injectable()
 export class DockerodeContainerRuntime extends ContainerRuntime {
   private readonly logger = new Logger(DockerodeContainerRuntime.name);
@@ -83,6 +87,9 @@ export class DockerodeContainerRuntime extends ContainerRuntime {
       name: options.name,
       Image: options.imageTag,
       Env: Object.entries(options.env).map(([key, value]) => `${key}=${value}`),
+      // Stamp ownership so a deleted app's container can be swept on next boot
+      // even if best-effort cleanup failed (RestartPolicy keeps it alive forever).
+      Labels: { [MANAGED_LABEL]: 'true', [APP_ID_LABEL]: options.appId },
       ExposedPorts: { [`${options.containerPort}/tcp`]: {} },
       // Empty string honors the image's own USER; a set value (ARCTURUS_CONTAINER_USER)
       // forces a non-root user as a hardening opt-in.
@@ -106,6 +113,14 @@ export class DockerodeContainerRuntime extends ContainerRuntime {
     });
     await container.start();
     return container.id;
+  }
+
+  async listManaged(): Promise<{ id: string; appId: string | null }[]> {
+    const containers = await this.docker.listContainers({
+      all: true,
+      filters: { label: [`${MANAGED_LABEL}=true`] },
+    });
+    return containers.map((c) => ({ id: c.Id, appId: c.Labels?.[APP_ID_LABEL] ?? null }));
   }
 
   /** Idempotently creates the shared app bridge with inter-container comms off. */
