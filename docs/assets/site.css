@@ -87,7 +87,7 @@ td code {
   border-radius: 5px;
   padding: 1px 5px;
   color: var(--cream);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .wrap {
@@ -652,6 +652,13 @@ td.mono {
   grid-template-columns: 1fr 1.2fr;
   gap: 40px;
   align-items: start;
+}
+
+/* let grid tracks shrink below the min-content of code blocks (whose
+   long unbroken command lines would otherwise blow the track past the
+   viewport); the inner pre scrolls via its own overflow-x: auto */
+.quickstart > * {
+  min-width: 0;
 }
 
 .quickstart .lead {
