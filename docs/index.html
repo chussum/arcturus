@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arcturus — your team's own little cloud</title>
+  <meta name="description" content="A self-hosted mini-PaaS for small teams. Zip a project or run one CLI command and it's live on your own server." />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/site.css" />
+  <meta property="og:title" content="Arcturus — your team's own little cloud" />
+  <meta property="og:description" content="Self-hosted mini-PaaS: static sites and Dockerfile apps, rollback, encrypted env vars, team accounts." />
+  <meta property="og:type" content="website" />
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="wordmark" href="./"><span class="star">✦</span>Arcturus</a>
+      <div class="nav-links">
+        <a href="./guide.html">Guide</a>
+        <a class="hide-sm" href="./guide.html#config">Configuration</a>
+        <a href="./ko/" hreflang="ko" lang="ko">한국어</a>
+        <a class="ext" href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <img class="mascot reveal" src="./assets/mascot.svg" width="132" height="132" alt="Arky, the Arcturus mascot — a baby bear hugging a star">
+      <p class="eyebrow reveal">Self-hosted mini-PaaS</p>
+      <h1 class="reveal">Your team’s own little&nbsp;cloud.</h1>
+      <p class="sub reveal">Zip a project — or run one command — and it’s live on <strong>your own server</strong>. Static sites and Dockerfile apps, with rollback, encrypted env vars and team accounts built in.</p>
+      <div class="cta-row reveal">
+        <a class="btn btn-primary" href="./guide.html">Get started</a>
+        <a class="btn btn-ghost" href="https://github.com/chussum/arcturus">GitHub ↗</a>
+      </div>
+
+      <div class="terminal reveal" aria-label="Terminal example: installing the CLI and deploying">
+        <div class="terminal-bar"><i></i><i></i><i></i><span class="title">~/blog</span></div>
+        <div class="terminal-body"><div><span class="prompt">$</span> <span class="cmd">curl -fsSL http://deploy.internal:7777/install.sh | sh</span></div>
+<div><span class="out">  <span class="mark">✦</span> installed arcturus → ~/.local/bin</span></div>
+<div class="blank">&nbsp;</div>
+<div><span class="prompt">$</span> <span class="cmd">arcturus deploy</span></div>
+<div><span class="out">  <span class="mark">✦</span> blog — packing 42 files (1.2 MB)</span></div>
+<div><span class="out">  <span class="mark">✦</span> uploading … done, release ready in 0.4s</span></div>
+<div><span class="out">  <span class="live">●</span> live at <span class="cmd">http://deploy.internal:7778/alice/blog</span></span></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">01</span>
+          <h2>Everything a small team actually needs</h2>
+          <span class="aside">and nothing it doesn’t</span>
+        </div>
+        <div class="features">
+          <article class="feature reveal">
+            <span class="f-num">01</span>
+            <h3>🚀 Static sites in seconds</h3>
+            <p>Served straight from disk, live the moment the upload finishes. Even a single <code>.html</code> file works; it becomes the index automatically.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">02</span>
+            <h3>🐳 Dockerfile apps</h3>
+            <p>If there’s a <code>Dockerfile</code> in the zip, the image is built and run as a container, routed automatically, with a dedicated port included.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">03</span>
+            <h3>⏮️ Rollback in one click</h3>
+            <p>Every app keeps its last 5 releases. Jump back to one from the dashboard or with <code>arcturus rollback</code>.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">04</span>
+            <h3>🔐 Env vars, encrypted</h3>
+            <p>Per-app environment variables, stored AES-256-GCM encrypted in SQLite. Saving them recreates the container right away — no rebuild.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">05</span>
+            <h3>🛡️ Safe by default</h3>
+            <p>Apps run on a separate origin, so one can’t ride your dashboard session. Containers are locked down, logins are rate-limited, and logout kills the session on the server.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">06</span>
+            <h3>♻️ No downtime on redeploy</h3>
+            <p>The dashboard and API swap blue-green behind an ingress, so <code>:7777</code> and <code>:7778</code> keep answering while you ship.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">07</span>
+            <h3>👥 Made for a team</h3>
+            <p>The admin hands out invite links; everyone manages their own apps. Share an app as <code>view</code> or <code>manage</code> — and a <code>manage</code> teammate can deploy to it too.</p>
+          </article>
+          <article class="feature reveal">
+            <span class="f-num">08</span>
+            <h3>🌐 Korean &amp; English</h3>
+            <p>The dashboard, API messages, and the CLI all speak both, following the browser or the <code>ARCTURUS_LANG</code> setting.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="routing">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">02</span>
+          <h2>How routing works</h2>
+          <span class="aside">the hard part, handled</span>
+        </div>
+        <p class="section-intro reveal">Path-prefix proxying (<code>/alice/blog</code>) breaks apps that reference assets by absolute path. Arcturus layers three remedies, so things just work:</p>
+        <div class="routing">
+          <article class="route-card reveal">
+            <span class="r-step">1</span>
+            <h3>Prefix strip + <code>X-Forwarded-Prefix</code></h3>
+            <p>Apps with a configurable base path work as-is — the gateway strips the prefix and tells the app where it lives.</p>
+          </article>
+          <article class="route-card reveal">
+            <span class="r-step">2</span>
+            <h3>Referer fallback</h3>
+            <p>Unmatched requests like <code>/static/app.js</code> are re-routed to the app the browser is currently viewing.</p>
+          </article>
+          <article class="route-card reveal">
+            <span class="r-step">3</span>
+            <h3>Dedicated port</h3>
+            <p>Every container app keeps a fixed port (<code>30000+</code>) with zero base-path issues. New container apps default to “redirect” — visitors are bounced straight to it.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cli">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">03</span>
+          <h2>The CLI</h2>
+          <span class="aside">one binary, no runtime</span>
+        </div>
+        <p class="section-intro reveal">The gateway serves the installer and platform binaries itself — your server is the distribution channel:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="curl -fsSL http://&lt;host&gt;:7777/install.sh | sh"><span class="accent">$</span> curl -fsSL http://&lt;host&gt;:7777/install.sh | sh</pre>
+        </div>
+        <div class="table-clip reveal">
+          <table class="table">
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">arcturus login --server … --token …</td><td class="desc">Authenticate (token from Dashboard → API Tokens)</td></tr>
+              <tr><td class="mono">arcturus deploy</td><td class="desc">Zip the current directory and deploy (Dockerfile → container)</td></tr>
+              <tr><td class="mono">arcturus apps</td><td class="desc">List your apps</td></tr>
+              <tr><td class="mono">arcturus deployments &lt;app&gt;</td><td class="desc">History, with live / rollbackable markers</td></tr>
+              <tr><td class="mono">arcturus rollback &lt;app&gt; &lt;id&gt;</td><td class="desc">Restore a previous release</td></tr>
+              <tr><td class="mono">arcturus env &lt;app&gt; --set K=V</td><td class="desc">Env vars — recreates the container, no rebuild</td></tr>
+              <tr><td class="mono">arcturus logs &lt;app&gt;</td><td class="desc">Follow container logs</td></tr>
+              <tr><td class="mono">arcturus destroy &lt;app&gt;</td><td class="desc">Delete the app</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="section-intro reveal" style="margin: 18px 0 0;">Pin an app name per project with <code>arcturus.json</code>: <code>{ "name": "my-app" }</code></p>
+      </div>
+    </section>
+
+    <section class="section" id="quickstart">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">04</span>
+          <h2>Run it on your server</h2>
+          <span class="aside">one command, idempotent</span>
+        </div>
+        <div class="quickstart">
+          <div class="lead reveal">
+            <p>Clone, run one script — it installs dependencies, builds the dashboard and starts everything under pm2. Open <code>http://&lt;host&gt;:7777</code> and you’re in.</p>
+            <p>On the first run the admin password is printed once to the logs.</p>
+            <ul class="req-list">
+              <li>Bun 1.3+</li>
+              <li>Docker <span class="opt">— only for container apps</span></li>
+            </ul>
+          </div>
+          <div>
+            <div class="codeblock reveal">
+              <pre data-copy="git clone https://github.com/chussum/arcturus.git && cd arcturus
+bun run server:up"><span class="accent">$</span> git clone https://github.com/chussum/arcturus.git &amp;&amp; cd arcturus
+<span class="accent">$</span> bun run server:up
+<span class="muted">  ✦ install → build → start   (pm2)</span>
+<span class="muted">  ✦ admin password → bun run server:logs</span></pre>
+            </div>
+            <div class="codeblock reveal">
+              <pre data-copy="bun run secrets:init"><span class="muted"># optional hardening (macOS) — plaintext keys → encrypted .env.secrets + Keychain</span>
+<span class="accent">$</span> bun run secrets:init
+<span class="muted">  ✦ change a secret later → bun run secrets:update</span>
+<span class="muted">  ✦ details → <a href="guide.html#setup">guide</a></span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">05</span>
+          <h2>Architecture</h2>
+          <span class="aside">Bun workspaces monorepo</span>
+        </div>
+        <div class="arch reveal"><div><span class="star">✦</span> <span class="path">apps/api</span>        <span class="note">NestJS — REST API, reverse-proxy gateway, deploy pipeline (runs on Bun)</span></div>
+<div><span class="star">✦</span> <span class="path">apps/web</span>        <span class="note">Next.js dashboard — Rspack + Linaria zero-runtime CSS, FSD architecture</span></div>
+<div><span class="star">✦</span> <span class="path">apps/cli</span>        <span class="note">arcturus CLI — single binary via `bun build --compile`</span></div>
+<div><span class="star">✦</span> <span class="path">packages/shared</span> <span class="note">API contract types shared by api / web / cli</span></div></div>
+        <p class="arch-foot reveal">SQLite via Drizzle — repositories sit behind ports, so PostgreSQL is a module swap. Docker via dockerode behind a <code>ContainerRuntime</code> port. Static releases live in versioned directories; container releases are per-deployment image tags.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span><span class="star">✦</span> Arcturus</span>
+      <span>MIT License</span>
+      <div class="footer-links">
+        <a href="./guide.html">Guide</a>
+        <a href="./ko/" hreflang="ko" lang="ko">한국어</a>
+        <a href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/site.js"></script>
+</body>
+</html>

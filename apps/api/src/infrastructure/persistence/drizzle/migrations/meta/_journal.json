@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1781186636968,
+      "tag": "0000_special_domino",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1781191153133,
+      "tag": "0001_true_nekra",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1781193984302,
+      "tag": "0002_daily_shadowcat",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1781269127869,
+      "tag": "0003_luxuriant_firestar",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1781272100415,
+      "tag": "0004_dashing_zodiak",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1781324842085,
+      "tag": "0005_many_mordo",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1781334474851,
+      "tag": "0006_lying_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1781420724752,
+      "tag": "0007_round_machine_man",
+      "breakpoints": true
+    }
+  ]
+}

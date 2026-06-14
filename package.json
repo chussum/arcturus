@@ -1,0 +1,36 @@
+{
+  "name": "arcturus",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Self-hosted mini PaaS for teams — deploy Dockerfile apps and static sites behind a single gateway",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "dev:api": "bun run --filter @arcturus/api dev",
+    "dev:web": "bun run --filter @arcturus/web dev",
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "secrets:init": "bash scripts/secrets-init.sh",
+    "secrets:update": "bash scripts/secrets-update.sh",
+    "server:up": "bash scripts/server-up.sh",
+    "server:down": "bash scripts/server-down.sh",
+    "server:restart": "bash scripts/server-up.sh --api",
+    "server:status": "bunx pm2 status",
+    "server:logs": "bunx pm2 logs",
+    "cli:build": "cd apps/cli && bun run build:all"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.0.0",
+    "@dotenvx/dotenvx": "1.71.0",
+    "pm2": "7.0.1",
+    "typescript": "6.0.3"
+  },
+  "patchedDependencies": {
+    "next@16.0.0": "patches/next@16.0.0.patch"
+  }
+}

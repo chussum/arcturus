@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guide — Arcturus</title>
+  <meta name="description" content="From a fresh server to your first deploy, rollback and day-2 operations — the complete Arcturus guide." />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/site.css" />
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="wordmark" href="./"><span class="star">✦</span>Arcturus</a>
+      <div class="nav-links">
+        <a class="active" href="./guide.html">Guide</a>
+        <a class="hide-sm" href="#config">Configuration</a>
+        <a href="./ko/guide.html" hreflang="ko" lang="ko">한국어</a>
+        <a class="ext" href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="guide-hero">
+    <div class="wrap">
+      <p class="eyebrow reveal">Guide</p>
+      <h1 class="reveal">From a fresh server to your first deploy</h1>
+      <p class="sub reveal">Everything in order: set up the server, install the CLI, ship an app, then run it like you mean it — env vars, rollback, logs.</p>
+      <div class="toc reveal">
+        <a href="#setup"><span class="n">01</span>Server setup</a>
+        <a href="#cli"><span class="n">02</span>Install the CLI</a>
+        <a href="#deploy"><span class="n">03</span>First deploy</a>
+        <a href="#ops"><span class="n">04</span>Day-2 operations</a>
+        <a href="#routing"><span class="n">05</span>Routing modes</a>
+        <a href="#config"><span class="n">06</span>Configuration</a>
+        <a href="#security"><span class="n">07</span>Security notes</a>
+        <a href="#troubleshooting"><span class="n">08</span>Troubleshooting</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="guide-section" id="setup">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">01</span>
+          <h2>Server setup</h2>
+        </div>
+        <p class="reveal">You need <strong>Bun 1.3+</strong> on the server, and <strong>Docker</strong> only if you plan to deploy container apps. Then:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="git clone https://github.com/chussum/arcturus.git && cd arcturus
+bun run server:up"><span class="accent">$</span> git clone https://github.com/chussum/arcturus.git &amp;&amp; cd arcturus
+<span class="accent">$</span> bun run server:up</pre>
+        </div>
+        <p class="reveal">That’s it — it installs dependencies, builds the dashboard and starts everything under pm2, all idempotent. Open <code>http://&lt;host&gt;:7777</code>.</p>
+        <div class="callout reveal">On the first run the <strong>admin password is printed once</strong> to the logs — grab it with <code>bun run server:logs</code>, or set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand.</div>
+        <h3 class="reveal">Installing Docker (no Docker Desktop needed)</h3>
+        <p class="reveal">Arcturus talks to the Docker API socket directly, so Docker Desktop is never required — which matters because Desktop needs a paid subscription at companies with 250+ employees or $10M+ annual revenue. Docker Engine and Colima are free open source for any commercial use.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER"><span class="comment"># Linux server — Docker Engine (Apache 2.0):</span>
+<span class="accent">$</span> curl -fsSL https://get.docker.com | sh
+<span class="accent">$</span> sudo usermod -aG docker $USER  <span class="comment"># re-login afterwards</span></pre>
+        </div>
+        <div class="codeblock reveal">
+          <pre data-copy="brew install colima docker
+colima start"><span class="comment"># macOS — Colima (MIT) + the docker CLI:</span>
+<span class="accent">$</span> brew install colima docker
+<span class="accent">$</span> colima start</pre>
+        </div>
+        <div class="callout reveal">On macOS, the <code>docker</code> CLI finds Colima's socket automatically — but Arcturus reads <code>DOCKER_HOST</code> instead of docker contexts. Add this to <code>~/.zshrc</code> (not <code>apps/api/.env</code>), then re-open your terminal or run <code>source ~/.zshrc</code>: <code>export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock</code></div>
+        <h3 class="reveal">Operating the server</h3>
+        <div class="table-clip reveal">
+          <table class="table">
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">bun run server:up</td><td class="desc">Install → build → start (safe to run multiple times)</td></tr>
+              <tr><td class="mono">bun run server:up -- --build</td><td class="desc">Same, but forces a dashboard rebuild — use after <code>git pull</code> to pick up any code changes</td></tr>
+              <tr><td class="mono">bun run server:down</td><td class="desc">Stop everything</td></tr>
+              <tr><td class="mono">bun run server:status</td><td class="desc">Process status</td></tr>
+              <tr><td class="mono">bun run server:logs</td><td class="desc">Tail logs (admin password lives here on first run)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="reveal">Hardening secrets (macOS)</h3>
+        <p class="reveal">Out of the box, the two generated keys (session signing, env encryption) live as plaintext files under <code>data/</code> — fine for trying things out, not for a long-lived server. One idempotent command moves them into a dotenvx-encrypted <code>.env.secrets</code> at the repo root, with the only decryption key stored in the macOS Keychain:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="bun run secrets:init"><span class="accent">$</span> bun run secrets:init</pre>
+        </div>
+        <p class="reveal">Existing values are migrated as-is, so encrypted app env vars and live sessions survive. To add or change a secret later, edit <code>.env.secrets</code> with plain <code>KEY=value</code> lines, then re-encrypt and restart:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="bun run secrets:update
+bun run server:restart"><span class="accent">$</span> bun run secrets:update
+<span class="accent">$</span> bun run server:restart</pre>
+        </div>
+        <div class="callout reveal">Before moving to another machine, back up the Keychain key: <code>security find-generic-password -s arcturus-dotenvx -w</code>. Linux has no Keychain — export <code>ARCTURUS_JWT_SECRET</code> / <code>ARCTURUS_ENV_KEY</code> yourself or stay on the file fallback. Details in <a href="#security">Security notes</a>.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="cli">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">02</span>
+          <h2>Install the CLI</h2>
+        </div>
+        <p class="reveal">The gateway serves the installer and the platform binaries itself. Build them once on the server, then anyone on the team installs with one command:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="cd apps/cli && bun run build:all"><span class="comment"># on the server, once:</span>
+<span class="accent">$</span> cd apps/cli &amp;&amp; bun run build:all</pre>
+        </div>
+        <div class="codeblock reveal">
+          <pre data-copy="curl -fsSL http://&lt;host&gt;:7777/install.sh | sh"><span class="comment"># on any machine:</span>
+<span class="accent">$</span> curl -fsSL http://&lt;host&gt;:7777/install.sh | sh</pre>
+        </div>
+        <p class="reveal">Create an API token in the dashboard (<strong>Dashboard → API Tokens</strong>) and log in:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus login --server http://&lt;host&gt;:7777 --token &lt;arc_...&gt;"><span class="accent">$</span> arcturus login --server http://&lt;host&gt;:7777 --token &lt;arc_...&gt;</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="deploy">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">03</span>
+          <h2>First deploy</h2>
+        </div>
+        <p class="reveal">From the project directory, one command. What happens next depends on what’s inside:</p>
+        <ul class="reveal">
+          <li><strong>No Dockerfile</strong> → deployed as a static site, live the moment the upload finishes. A single <code>.html</code> file becomes the index automatically.</li>
+          <li><strong>Dockerfile present</strong> → the image is built and run as a container, routed automatically with a dedicated port.</li>
+        </ul>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus deploy"><span class="accent">$</span> arcturus deploy
+<span class="muted">  ✦ blog — packing 42 files (1.2 MB)</span>
+<span class="muted">  ✦ uploading … done, release ready in 0.4s</span>
+<span class="muted">  ● live at http://&lt;host&gt;:7778/alice/blog</span></pre>
+        </div>
+        <p class="reveal">By default the app is named after the directory. Pin a name per project with an <code>arcturus.json</code> next to your code:</p>
+        <div class="codeblock reveal">
+          <pre data-copy='{ "name": "my-app" }'>{ "name": "my-app" }</pre>
+        </div>
+        <h3 class="reveal">Automatic <code>.env</code> (container apps)</h3>
+        <p class="reveal">When you deploy a directory with a <code>Dockerfile</code>, Arcturus reads the <code>.env</code> next to it, stores the variables as the app's env <strong>encrypted at rest</strong>, and applies them to the container — exactly like setting them by hand. This happens <strong>only on first creation</strong> of the app; redeploys leave an existing app's env untouched (change it later with <code>arcturus env</code> or the dashboard). Every <code>.env*</code> file (<code>.env</code>, <code>.env.local</code>, <code>.env.production</code> …) is always <strong>excluded from the build image</strong>, so secrets never land in an image layer.</p>
+        <h3 class="reveal"><code>arcturus deploy</code> options</h3>
+        <ul class="reveal">
+          <li><code>--name &lt;appName&gt;</code> — app name (defaults to <code>arcturus.json</code>'s <code>name</code>, else the directory name)</li>
+          <li><code>--name &lt;owner&gt;/&lt;appName&gt;</code> — deploy to another account's app you have <strong>manage</strong> access to (the app must already exist)</li>
+          <li><code>--dir &lt;path&gt;</code> — project directory to deploy (default: <code>.</code>)</li>
+          <li><code>--env-file &lt;path&gt;</code> — env file to seed a new container app (default: <code>.env</code> in the dir)</li>
+          <li><code>--no-env-file</code> — don't read any <code>.env</code> file</li>
+        </ul>
+        <p class="reveal">Prefer no CLI at all? The dashboard accepts a <strong>zip upload</strong> — same pipeline, same result.</p>
+      </div>
+    </section>
+
+    <section class="guide-section" id="ops">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">04</span>
+          <h2>Day-2 operations</h2>
+        </div>
+        <h3 class="reveal">Environment variables</h3>
+        <p class="reveal">Saved values <strong>recreate the container instantly — no rebuild</strong>. They’re encrypted at rest (AES-256-GCM) in SQLite.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus env my-app --set DATABASE_URL=postgres://…"><span class="accent">$</span> arcturus env my-app --set DATABASE_URL=postgres://…</pre>
+        </div>
+        <h3 class="reveal">History &amp; rollback</h3>
+        <p class="reveal">The last 5 releases are kept per app (<code>ARCTURUS_KEEP_RELEASES</code>). Static releases are versioned directories; container releases are per-deployment image tags — rollback is instant either way.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus deployments my-app"><span class="accent">$</span> arcturus deployments my-app   <span class="comment"># history, live / rollbackable markers</span>
+<span class="accent">$</span> arcturus rollback my-app &lt;id&gt; <span class="comment"># restore a previous release</span></pre>
+        </div>
+        <h3 class="reveal">Logs &amp; teardown</h3>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus logs my-app"><span class="accent">$</span> arcturus logs my-app    <span class="comment"># follow container logs</span>
+<span class="accent">$</span> arcturus destroy my-app <span class="comment"># delete the app</span></pre>
+        </div>
+        <h3 class="reveal">Team accounts</h3>
+        <p class="reveal">The admin issues <strong>invite links</strong> from the dashboard; members sign up through them and manage their own apps. Roles are simple: admin and member.</p>
+        <h3 class="reveal">App sharing</h3>
+        <p class="reveal">Any app owner (or admin) can share an app from its detail page — with specific teammates or with the whole team. Two access tiers:</p>
+        <ul class="reveal">
+          <li><strong>Can view</strong> — sees the app card, status, URL, and deployment history. Env vars and live logs are hidden.</li>
+          <li><strong>Can manage</strong> — everything view can see, plus deploying new builds, env editing, memory/routing settings, stop, restart, and rollback. Deleting and changing sharing settings remain owner/admin-only.</li>
+        </ul>
+        <div class="callout reveal">A <strong>manage</strong> collaborator can deploy to the shared app — <code>arcturus deploy --name &lt;owner&gt;/&lt;app&gt;</code>, or the dashboard's redeploy button. Deleting and sharing config stay owner/admin-only.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="routing">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">05</span>
+          <h2>Routing modes</h2>
+        </div>
+        <p class="reveal">Apps are served at <code>/&lt;username&gt;/&lt;app-name&gt;</code> behind the gateway. Path-prefix proxying breaks apps that reference assets by absolute path, so Arcturus layers three remedies:</p>
+        <ol class="reveal">
+          <li><strong>Prefix strip + <code>X-Forwarded-Prefix</code></strong> — apps with a configurable base path work as-is.</li>
+          <li><strong>Referer fallback</strong> — unmatched requests (<code>/static/app.js</code>) are re-routed to the app the browser is viewing.</li>
+          <li><strong>Dedicated port</strong> — every container app keeps a fixed port (<code>30000+</code>) with zero base-path issues.</li>
+        </ol>
+        <div class="callout reveal">New container apps default to the <strong>“redirect”</strong> routing mode — visitors are bounced to the dedicated port, so the base-path problem never appears. Prefer path-based serving? Switch the app to <strong>“proxy”</strong> in its detail page.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="config">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">06</span>
+          <h2>Configuration reference</h2>
+        </div>
+        <p class="reveal">Copy the examples and adjust — <strong>every value is optional</strong>, sensible defaults apply:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/api/.env.example apps/api/.env
+<span class="accent">$</span> cp apps/web/.env.example apps/web/.env</pre>
+        </div>
+        <div class="table-clip reveal">
+          <table class="table">
+            <thead><tr><th>Env var</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">ARCTURUS_PORT</td><td class="default">7777</td><td class="desc">Control-plane port (API + dashboard)</td></tr>
+              <tr><td class="mono">ARCTURUS_APPS_PORT</td><td class="default">7778</td><td class="desc">Separate origin for deployed apps (isolates app code from the control-plane cookie)</td></tr>
+              <tr><td class="mono">ARCTURUS_DATA_DIR</td><td class="default">./data</td><td class="desc">SQLite, static releases, build workspace</td></tr>
+              <tr><td class="mono">ARCTURUS_PORT_POOL_START/END</td><td class="default">30000 / 30999</td><td class="desc">Dedicated port pool for container apps</td></tr>
+              <tr><td class="mono">ARCTURUS_MAX_UPLOAD_MB</td><td class="default">256</td><td class="desc">Upload size limit</td></tr>
+              <tr><td class="mono">ARCTURUS_KEEP_RELEASES</td><td class="default">5</td><td class="desc">Releases kept per app for rollback</td></tr>
+              <tr><td class="mono">ARCTURUS_CLI_DIST</td><td class="default">apps/cli/dist/cli</td><td class="desc">Cross-compiled CLI binaries to serve</td></tr>
+              <tr><td class="mono">ARCTURUS_DEV_ORIGINS</td><td class="default">—</td><td class="desc">Extra allowed origins for <code>next dev</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout reveal">The secrets aren’t in this table on purpose. <code>ARCTURUS_JWT_SECRET</code> and <code>ARCTURUS_ENV_KEY</code> are managed in the encrypted <code>.env.secrets</code> via <a href="#setup">Hardening secrets</a>, and <code>ARCTURUS_ADMIN_PASSWORD</code> is set via env or printed once to the logs on first run. All three are generated for local dev and <strong>required in production</strong> — see <a href="#security">Security notes</a>.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="security">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">07</span>
+          <h2>Security notes</h2>
+        </div>
+        <h3 class="reveal">Secrets &amp; keys</h3>
+        <ul class="reveal">
+          <li><strong>App env vars are encrypted at rest</strong> (AES-256-GCM, in SQLite). The key comes from <code>ARCTURUS_ENV_KEY</code>, or is generated once into <code>data/env-key</code>. Rows saved as plaintext by older versions are encrypted automatically on the next boot.</li>
+          <li><strong>File permissions are enforced on every boot</strong> — <code>data/</code> is <code>0700</code>; the DB and key files are <code>0600</code>.</li>
+          <li><strong>The generated plaintext key files are a zero-config convenience.</strong> For a long-lived server, move them into the encrypted file + Keychain with <code>bun run secrets:init</code> — see <a href="#setup">Hardening secrets</a>.</li>
+        </ul>
+        <div class="callout warn reveal">Losing or changing <code>ARCTURUS_ENV_KEY</code> makes existing env values <strong>undecryptable</strong>. Back the key up alongside your data directory. After <code>secrets:init</code> the key lives in the Keychain — export it with <code>security find-generic-password -s arcturus-dotenvx -w</code>.</div>
+        <h3 class="reveal">Accounts &amp; tokens</h3>
+        <ul class="reveal">
+          <li><strong>Login, signup and API-token creation are limited to 10 requests/minute per IP</strong> to blunt password guessing. Deploys get 20/minute.</li>
+          <li><strong>Logging out revokes the session server-side, immediately.</strong> Even a leaked cookie value stops working after logout.</li>
+          <li><strong>Password change and admin reset both revoke all sessions.</strong> Members change their password from <strong>Dashboard → Account</strong> (current password required); all other sessions are invalidated immediately. Admins can generate a one-time reset link for any member from the <strong>Team</strong> page — valid for one hour, single-use, revokes all sessions on completion.</li>
+          <li><strong>API tokens can expire.</strong> Pick 30/90/365 days or no expiry at creation. Expired tokens are rejected at authentication, and manual revocation always works.</li>
+        </ul>
+        <h3 class="reveal">Container isolation</h3>
+        <ul class="reveal">
+          <li><strong>Deployed containers run with minimal privileges.</strong> All Linux capabilities dropped, <code>no-new-privileges</code>, CPU/PID limits, and a per-app memory cap (set in the dashboard, ceiling <code>ARCTURUS_MAX_MEMORY_MB</code>). Image builds get the same memory cap.</li>
+          <li><strong>Tenants can’t reach each other.</strong> Every app sits on a dedicated bridge network with inter-container traffic disabled. Container→host traffic is not blocked, though — treat deployed code as something your team trusts.</li>
+          <li><strong>Containers honor the image’s <code>USER</code> by default</strong> (often root). Set <code>ARCTURUS_CONTAINER_USER</code> (e.g. <code>1000:1000</code>) to force a non-root user.</li>
+          <li><strong>Container apps are also reachable on their dedicated host port</strong>, not only through the gateway path — intended, since the “jump to dedicated port” access mode relies on it. Keep the port pool firewalled to your team’s network.</li>
+        </ul>
+        <h3 class="reveal">Supply chain</h3>
+        <ul class="reveal">
+          <li><strong>Dependency installs skip npm versions younger than 7 days</strong> (<code>minimumReleaseAge</code> in <code>bunfig.toml</code>). That buys time for a compromised release to be discovered and unpublished before it reaches this repo. Exempt an urgent patch per package via <code>minimumReleaseAgeExcludes</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="guide-section" id="troubleshooting">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">08</span>
+          <h2>Troubleshooting</h2>
+        </div>
+        <h3 class="reveal">An app’s assets 404 behind the path prefix</h3>
+        <p class="reveal">That’s the absolute-path problem — see <a href="#routing">Routing modes</a>. It only appears in “proxy” mode; container apps default to “redirect”, so switch the app back to “redirect” and it’s served from its dedicated port.</p>
+        <h3 class="reveal">Port already in use after a restart</h3>
+        <p class="reveal">If a process lingers and you hit <code>EADDRINUSE</code>, clear it by port rather than by name:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="lsof -ti :7777 | xargs kill -9"><span class="accent">$</span> lsof -ti :7777 | xargs kill -9</pre>
+        </div>
+        <h3 class="reveal">Lost the admin password</h3>
+        <p class="reveal">It’s only printed on the very first boot. Set <code>ARCTURUS_ADMIN_PASSWORD</code> and restart, or check the first-run logs if you still have them (<code>bun run server:logs</code>).</p>
+        <h3 class="reveal">Deploy fails after moving the server</h3>
+        <p class="reveal">If you migrated the <code>data/</code> directory but not the env key, container apps with saved env vars can’t decrypt them — restore <code>data/env-key</code> (or your <code>ARCTURUS_ENV_KEY</code>) from backup. If the old machine used <code>secrets:init</code>, copy <code>.env.secrets</code> too and move the Keychain key: read it on the old machine with <code>security find-generic-password -s arcturus-dotenvx -w</code>, then store it on the new one with <code>security add-generic-password -s arcturus-dotenvx -a "$USER" -w "&lt;key&gt;"</code>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span><span class="star">✦</span> Arcturus</span>
+      <span>MIT License</span>
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="./ko/guide.html" hreflang="ko" lang="ko">한국어</a>
+        <a href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>가이드 — Arcturus</title>
+  <meta name="description" content="새 서버 셋업부터 첫 배포, 롤백, 일상 운영까지 — Arcturus 완전 가이드." />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="wordmark" href="./"><span class="star">✦</span>Arcturus</a>
+      <div class="nav-links">
+        <a class="active" href="./guide.html">가이드</a>
+        <a class="hide-sm" href="#config">설정</a>
+        <a href="../guide.html" hreflang="en" lang="en">English</a>
+        <a class="ext" href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="guide-hero">
+    <div class="wrap">
+      <p class="eyebrow reveal">가이드</p>
+      <h1 class="reveal">새 서버에서 첫 배포까지</h1>
+      <p class="sub reveal">순서대로 전부: 서버 셋업, CLI 설치, 앱 배포, 그리고 제대로 운영하기 — env 변수, 롤백, 로그까지.</p>
+      <div class="toc reveal">
+        <a href="#setup"><span class="n">01</span>서버 셋업</a>
+        <a href="#cli"><span class="n">02</span>CLI 설치</a>
+        <a href="#deploy"><span class="n">03</span>첫 배포</a>
+        <a href="#ops"><span class="n">04</span>일상 운영</a>
+        <a href="#routing"><span class="n">05</span>라우팅 모드</a>
+        <a href="#config"><span class="n">06</span>설정 레퍼런스</a>
+        <a href="#security"><span class="n">07</span>보안 노트</a>
+        <a href="#troubleshooting"><span class="n">08</span>트러블슈팅</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="guide-section" id="setup">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">01</span>
+          <h2>서버 셋업</h2>
+        </div>
+        <p class="reveal">서버에 <strong>Bun 1.3+</strong>가 필요하고, <strong>Docker</strong>는 컨테이너 앱을 배포할 때만 있으면 됩니다. 그다음:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="git clone https://github.com/chussum/arcturus.git && cd arcturus
+bun run server:up"><span class="accent">$</span> git clone https://github.com/chussum/arcturus.git &amp;&amp; cd arcturus
+<span class="accent">$</span> bun run server:up</pre>
+        </div>
+        <p class="reveal">이게 전부입니다 — 의존성 설치, 대시보드 빌드, pm2 기동까지 알아서 하고, 전 과정은 여러 번 실행해도 안전합니다. <code>http://&lt;host&gt;:7777</code>을 여세요.</p>
+        <div class="callout reveal">첫 실행 시 <strong>admin 비밀번호가 로그에 딱 한 번 출력</strong>됩니다 — <code>bun run server:logs</code>로 확인하거나, 미리 <code>ARCTURUS_ADMIN_PASSWORD</code>를 설정해 두세요.</div>
+        <h3 class="reveal">Docker 설치 (Docker Desktop 불필요)</h3>
+        <p class="reveal">Arcturus는 Docker API 소켓에 직접 통신하므로 Docker Desktop이 전혀 필요 없습니다 — Desktop은 직원 250명 이상 또는 연매출 $10M 이상 기업에서 유료 구독이 필요하지만, Docker Engine과 Colima는 상업적 사용에도 무료인 오픈소스입니다.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER"><span class="comment"># Linux 서버 — Docker Engine (Apache 2.0):</span>
+<span class="accent">$</span> curl -fsSL https://get.docker.com | sh
+<span class="accent">$</span> sudo usermod -aG docker $USER  <span class="comment"># 이후 재로그인</span></pre>
+        </div>
+        <div class="codeblock reveal">
+          <pre data-copy="brew install colima docker
+colima start"><span class="comment"># macOS — Colima (MIT) + docker CLI:</span>
+<span class="accent">$</span> brew install colima docker
+<span class="accent">$</span> colima start</pre>
+        </div>
+        <div class="callout reveal">macOS에서 <code>docker</code> 명령은 Colima 소켓을 알아서 찾지만, Arcturus는 docker context 대신 <code>DOCKER_HOST</code> 환경 변수를 읽습니다. <code>apps/api/.env</code>가 아닌 <code>~/.zshrc</code>에 추가한 뒤 터미널을 새로 열거나 <code>source ~/.zshrc</code>를 실행하세요: <code>export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock</code></div>
+        <h3 class="reveal">서버 운영</h3>
+        <div class="table-clip reveal">
+          <table class="table">
+            <thead><tr><th>명령</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">bun run server:up</td><td class="desc">설치 → 빌드 → 기동 (여러 번 실행해도 안전)</td></tr>
+              <tr><td class="mono">bun run server:up -- --build</td><td class="desc">위와 동일하지만 대시보드를 강제 재빌드 — <code>git pull</code> 후 코드 변경을 반영할 때 사용</td></tr>
+              <tr><td class="mono">bun run server:down</td><td class="desc">전체 중지</td></tr>
+              <tr><td class="mono">bun run server:status</td><td class="desc">프로세스 상태</td></tr>
+              <tr><td class="mono">bun run server:logs</td><td class="desc">로그 팔로우 (첫 실행 admin 비밀번호가 여기에)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="reveal">시크릿 하드닝 (macOS)</h3>
+        <p class="reveal">기본 상태에서는 자동 생성된 키 두 개(세션 서명, env 암호화)가 <code>data/</code> 아래 평문 파일로 남습니다 — 체험용으로는 충분하지만 오래 운영하는 서버에는 적합하지 않습니다. 명령 하나로(여러 번 실행해도 안전) 레포 루트의 dotenvx 암호화 <code>.env.secrets</code>로 옮기고, 복호화 키는 macOS Keychain에만 보관합니다:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="bun run secrets:init"><span class="accent">$</span> bun run secrets:init</pre>
+        </div>
+        <p class="reveal">기존 값은 그대로 이전되므로 암호화된 앱 env 변수와 로그인 세션이 유지됩니다. 이후 시크릿을 추가·수정하려면 <code>.env.secrets</code>에 평문 <code>KEY=값</code>으로 적은 뒤 재암호화하고 재시작하세요:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="bun run secrets:update
+bun run server:restart"><span class="accent">$</span> bun run secrets:update
+<span class="accent">$</span> bun run server:restart</pre>
+        </div>
+        <div class="callout reveal">다른 머신으로 이전하기 전에 Keychain 키를 백업하세요: <code>security find-generic-password -s arcturus-dotenvx -w</code>. Linux에는 Keychain이 없으니 <code>ARCTURUS_JWT_SECRET</code> / <code>ARCTURUS_ENV_KEY</code>를 직접 주입하거나 파일 fallback을 그대로 쓰세요. 자세한 내용은 <a href="#security">보안 참고</a>에 있습니다.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="cli">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">02</span>
+          <h2>CLI 설치</h2>
+        </div>
+        <p class="reveal">게이트웨이가 인스톨러와 플랫폼별 바이너리를 직접 서빙합니다. 서버에서 한 번만 빌드해 두면, 팀원 누구나 명령 한 줄로 설치합니다:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="cd apps/cli && bun run build:all"><span class="comment"># 서버에서, 한 번만:</span>
+<span class="accent">$</span> cd apps/cli &amp;&amp; bun run build:all</pre>
+        </div>
+        <div class="codeblock reveal">
+          <pre data-copy="curl -fsSL http://&lt;host&gt;:7777/install.sh | sh"><span class="comment"># 어느 머신에서든:</span>
+<span class="accent">$</span> curl -fsSL http://&lt;host&gt;:7777/install.sh | sh</pre>
+        </div>
+        <p class="reveal">대시보드에서 API 토큰을 만들고 (<strong>Dashboard → API Tokens</strong>) 로그인하세요:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus login --server http://&lt;host&gt;:7777 --token &lt;arc_...&gt;"><span class="accent">$</span> arcturus login --server http://&lt;host&gt;:7777 --token &lt;arc_...&gt;</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="deploy">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">03</span>
+          <h2>첫 배포</h2>
+        </div>
+        <p class="reveal">프로젝트 디렉터리에서 명령 한 번. 그다음 일어나는 일은 내용물에 따라 갈립니다:</p>
+        <ul class="reveal">
+          <li><strong>Dockerfile 없음</strong> → 정적 사이트로 배포, 업로드가 끝나는 순간 라이브. <code>.html</code> 파일 하나면 자동으로 index가 됩니다.</li>
+          <li><strong>Dockerfile 있음</strong> → 이미지를 빌드해 컨테이너로 실행, 전용 포트와 함께 자동 라우팅.</li>
+        </ul>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus deploy"><span class="accent">$</span> arcturus deploy
+<span class="muted">  ✦ blog — packing 42 files (1.2 MB)</span>
+<span class="muted">  ✦ uploading … done, release ready in 0.4s</span>
+<span class="muted">  ● live at http://&lt;host&gt;:7778/alice/blog</span></pre>
+        </div>
+        <p class="reveal">기본 앱 이름은 디렉터리 이름입니다. 코드 옆에 <code>arcturus.json</code>을 두면 프로젝트별로 이름을 고정할 수 있습니다:</p>
+        <div class="codeblock reveal">
+          <pre data-copy='{ "name": "my-app" }'>{ "name": "my-app" }</pre>
+        </div>
+        <h3 class="reveal"><code>.env</code> 자동 등록 (컨테이너 앱)</h3>
+        <p class="reveal"><code>Dockerfile</code>이 있는 디렉터리를 배포하면, 옆에 있는 <code>.env</code> 파일을 읽어 변수들을 앱 환경 변수로 <strong>암호화 저장</strong>하고 컨테이너에 주입합니다 — 손으로 입력하는 것과 똑같이. 단, <strong>앱 최초 생성 시에만</strong> 적용되고, 재배포 때는 기존 env를 건드리지 않습니다(이후 변경은 <code>arcturus env</code> 또는 대시보드에서). 모든 <code>.env*</code> 파일(<code>.env</code>, <code>.env.local</code>, <code>.env.production</code> …)은 <strong>빌드 이미지에서 항상 제외</strong>되어 시크릿이 이미지 레이어에 남지 않습니다.</p>
+        <h3 class="reveal"><code>arcturus deploy</code> 옵션</h3>
+        <ul class="reveal">
+          <li><code>--name &lt;appName&gt;</code> — 앱 이름 (기본값: <code>arcturus.json</code>의 <code>name</code>, 없으면 디렉터리 이름)</li>
+          <li><code>--name &lt;owner&gt;/&lt;appName&gt;</code> — <strong>manage</strong> 권한이 있는 다른 계정의 앱에 배포 (해당 앱이 이미 존재해야 함)</li>
+          <li><code>--dir &lt;path&gt;</code> — 배포할 프로젝트 디렉터리 (기본값: <code>.</code>)</li>
+          <li><code>--env-file &lt;path&gt;</code> — 새 컨테이너 앱에 넣을 env 파일 (기본값: 디렉터리의 <code>.env</code>)</li>
+          <li><code>--no-env-file</code> — <code>.env</code> 파일을 읽지 않음</li>
+        </ul>
+        <p class="reveal">CLI 없이 쓰고 싶다면? 대시보드에서 <strong>zip 업로드</strong>를 받습니다 — 같은 파이프라인, 같은 결과.</p>
+      </div>
+    </section>
+
+    <section class="guide-section" id="ops">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">04</span>
+          <h2>일상 운영</h2>
+        </div>
+        <h3 class="reveal">환경 변수</h3>
+        <p class="reveal">저장된 값으로 <strong>컨테이너를 즉시 재생성 — 재빌드 없음</strong>. SQLite에 AES-256-GCM으로 암호화되어 보관됩니다.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus env my-app --set DATABASE_URL=postgres://…"><span class="accent">$</span> arcturus env my-app --set DATABASE_URL=postgres://…</pre>
+        </div>
+        <h3 class="reveal">히스토리 &amp; 롤백</h3>
+        <p class="reveal">앱마다 최근 5개 릴리스를 보관합니다(<code>ARCTURUS_KEEP_RELEASES</code>). 정적 릴리스는 버전 디렉터리, 컨테이너 릴리스는 배포별 이미지 태그 — 어느 쪽이든 롤백은 즉시입니다.</p>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus deployments my-app"><span class="accent">$</span> arcturus deployments my-app   <span class="comment"># 히스토리, live / rollback 가능 마커</span>
+<span class="accent">$</span> arcturus rollback my-app &lt;id&gt; <span class="comment"># 이전 릴리스로 복원</span></pre>
+        </div>
+        <h3 class="reveal">로그 &amp; 정리</h3>
+        <div class="codeblock reveal">
+          <pre data-copy="arcturus logs my-app"><span class="accent">$</span> arcturus logs my-app    <span class="comment"># 컨테이너 로그 팔로우</span>
+<span class="accent">$</span> arcturus destroy my-app <span class="comment"># 앱 삭제</span></pre>
+        </div>
+        <h3 class="reveal">팀 계정</h3>
+        <p class="reveal">admin이 대시보드에서 <strong>초대 링크</strong>를 발급하면, 멤버는 그 링크로 가입해 자기 앱을 직접 관리합니다. 역할은 단순하게 admin과 member 둘뿐.</p>
+        <h3 class="reveal">앱 공유</h3>
+        <p class="reveal">앱 소유자(또는 admin)는 앱 상세 페이지에서 특정 팀원 또는 전체 팀과 앱을 공유할 수 있습니다. 두 가지 접근 권한:</p>
+        <ul class="reveal">
+          <li><strong>읽기 전용</strong> — 앱 카드, 상태, URL, 배포 히스토리를 볼 수 있어요. 환경 변수와 실시간 로그는 숨겨집니다.</li>
+          <li><strong>관리 가능</strong> — 읽기 전용의 모든 것 + 새 버전 배포, 환경 변수 편집, 메모리/라우팅 설정, 중지, 재시작, 롤백. 삭제와 공유 설정 변경은 소유자/admin만 가능해요.</li>
+        </ul>
+        <div class="callout reveal"><strong>manage</strong> 권한자는 공유받은 앱에 배포할 수 있습니다 — <code>arcturus deploy --name &lt;owner&gt;/&lt;app&gt;</code> 또는 대시보드 재배포 버튼. 삭제와 공유 설정은 소유자/admin만 가능해요.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="routing">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">05</span>
+          <h2>라우팅 모드</h2>
+        </div>
+        <p class="reveal">앱은 게이트웨이 뒤 <code>/&lt;username&gt;/&lt;app-name&gt;</code>에서 서빙됩니다. 경로 프리픽스 프록시는 절대 경로로 에셋을 참조하는 앱을 깨뜨리기 때문에, Arcturus는 세 겹의 해법을 쌓습니다:</p>
+        <ol class="reveal">
+          <li><strong>프리픽스 제거 + <code>X-Forwarded-Prefix</code></strong> — base path를 설정할 수 있는 앱은 그대로 동작.</li>
+          <li><strong>Referer 폴백</strong> — 매칭되지 않은 요청(<code>/static/app.js</code>)은 브라우저가 보고 있던 앱으로 재라우팅.</li>
+          <li><strong>전용 포트</strong> — 모든 컨테이너 앱은 고정 포트(<code>30000+</code>)를 유지, base path 문제 없음.</li>
+        </ol>
+        <div class="callout reveal">새 컨테이너 앱은 <strong>“redirect”</strong> 라우팅 모드가 기본입니다 — 방문자를 전용 포트로 보내므로 base path 문제가 애초에 생기지 않습니다. 경로 기반 서빙을 원하면 앱 상세에서 <strong>“proxy”</strong>로 전환하세요.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="config">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">06</span>
+          <h2>설정 레퍼런스</h2>
+        </div>
+        <p class="reveal">예시 파일을 복사해 수정하세요 — <strong>모든 값이 선택</strong>이고, 합리적인 기본값이 적용됩니다:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/api/.env.example apps/api/.env
+<span class="accent">$</span> cp apps/web/.env.example apps/web/.env</pre>
+        </div>
+        <div class="table-clip reveal">
+          <table class="table">
+            <thead><tr><th>환경 변수</th><th>기본값</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">ARCTURUS_PORT</td><td class="default">7777</td><td class="desc">제어 평면 포트 (API + 대시보드)</td></tr>
+              <tr><td class="mono">ARCTURUS_APPS_PORT</td><td class="default">7778</td><td class="desc">배포된 앱 전용 오리진 (앱 코드를 제어 평면 쿠키에서 격리)</td></tr>
+              <tr><td class="mono">ARCTURUS_DATA_DIR</td><td class="default">./data</td><td class="desc">SQLite, 정적 릴리스, 빌드 워크스페이스</td></tr>
+              <tr><td class="mono">ARCTURUS_PORT_POOL_START/END</td><td class="default">30000 / 30999</td><td class="desc">컨테이너 앱용 전용 포트 풀</td></tr>
+              <tr><td class="mono">ARCTURUS_MAX_UPLOAD_MB</td><td class="default">256</td><td class="desc">업로드 크기 제한</td></tr>
+              <tr><td class="mono">ARCTURUS_KEEP_RELEASES</td><td class="default">5</td><td class="desc">앱별 롤백용 보관 릴리스 수</td></tr>
+              <tr><td class="mono">ARCTURUS_CLI_DIST</td><td class="default">apps/cli/dist/cli</td><td class="desc">서빙할 크로스컴파일 CLI 바이너리 경로</td></tr>
+              <tr><td class="mono">ARCTURUS_DEV_ORIGINS</td><td class="default">—</td><td class="desc"><code>next dev</code>에 추가 허용할 origin</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout reveal">시크릿은 이 표에 일부러 넣지 않았습니다. <code>ARCTURUS_JWT_SECRET</code>·<code>ARCTURUS_ENV_KEY</code>는 암호화된 <code>.env.secrets</code>에서 <a href="#setup">시크릿 하드닝</a>으로 관리하고, <code>ARCTURUS_ADMIN_PASSWORD</code>는 env로 지정하거나 첫 실행 때 로그에 1회 출력됩니다. 셋 다 로컬 dev에선 자동 생성되고 <strong>프로덕션에선 필수</strong>입니다 — 자세한 건 <a href="#security">보안 참고</a>를 보세요.</div>
+      </div>
+    </section>
+
+    <section class="guide-section" id="security">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">07</span>
+          <h2>보안 노트</h2>
+        </div>
+        <h3 class="reveal">시크릿과 키</h3>
+        <ul class="reveal">
+          <li><strong>앱 env 변수는 암호화해 저장합니다</strong> (AES-256-GCM, SQLite). 키는 <code>ARCTURUS_ENV_KEY</code>를 쓰고, 없으면 한 번 생성해 <code>data/env-key</code>에 둡니다. 예전에 평문으로 저장된 값이 있어도 다음 부팅 때 자동으로 암호화됩니다.</li>
+          <li><strong>파일 권한은 부팅 때마다 강제합니다</strong> — <code>data/</code>는 <code>0700</code>, DB와 키 파일은 <code>0600</code>.</li>
+          <li><strong>자동 생성된 평문 키 파일은 체험용 편의 장치입니다.</strong> 오래 운영하는 서버라면 <code>bun run secrets:init</code>으로 암호화 파일 + Keychain 보관으로 옮기세요 — 방법은 <a href="#setup">시크릿 하드닝</a>에 있습니다.</li>
+        </ul>
+        <div class="callout warn reveal"><code>ARCTURUS_ENV_KEY</code>를 분실하거나 변경하면 기존 env 값은 <strong>복호화할 수 없습니다</strong>. 데이터 디렉터리와 함께 키도 백업하세요. <code>secrets:init</code> 이후에는 키가 Keychain에 있습니다 — <code>security find-generic-password -s arcturus-dotenvx -w</code>로 꺼내 백업합니다.</div>
+        <h3 class="reveal">계정과 토큰</h3>
+        <ul class="reveal">
+          <li><strong>로그인·가입·API 토큰 생성은 IP당 분당 10회</strong>로 제한됩니다. 비밀번호를 계속 찍어보는 공격을 막기 위해서입니다. 배포는 분당 20회입니다.</li>
+          <li><strong>로그아웃하면 세션이 서버에서도 즉시 폐기됩니다.</strong> 쿠키 값이 어딘가로 새어 나갔더라도 로그아웃 뒤에는 쓸 수 없습니다.</li>
+          <li><strong>비밀번호 변경과 어드민 재설정 링크는 모두 전 세션을 폐기합니다.</strong> 멤버는 <strong>대시보드 → Account</strong>에서 현재 비밀번호를 확인 후 변경할 수 있으며, 다른 세션은 즉시 무효화됩니다. 어드민은 <strong>Team</strong> 페이지에서 팀원에게 1회용 재설정 링크를 발급할 수 있고 — 1시간 유효, 1회 사용 후 해당 계정의 모든 세션이 폐기됩니다.</li>
+          <li><strong>API 토큰에 만료를 둘 수 있습니다.</strong> 생성할 때 30/90/365일 또는 무기한을 고릅니다. 만료된 토큰은 인증에서 거부되고, 수동 폐기는 언제든 가능합니다.</li>
+        </ul>
+        <h3 class="reveal">컨테이너 격리</h3>
+        <ul class="reveal">
+          <li><strong>배포 컨테이너는 권한을 최소화해 실행됩니다.</strong> 모든 Linux capability 제거, <code>no-new-privileges</code>, CPU/PID 제한, 앱별 메모리 상한(대시보드에서 설정, 상한선은 <code>ARCTURUS_MAX_MEMORY_MB</code>). 이미지 빌드에도 같은 메모리 상한이 걸립니다.</li>
+          <li><strong>팀원 앱끼리는 서로 닿지 못합니다.</strong> 모든 앱은 컨테이너 간 통신을 끈 전용 브리지 네트워크에서 돕니다. 단, 컨테이너에서 호스트로 나가는 방향까지 막지는 못하니 배포되는 코드는 팀이 신뢰할 수 있어야 합니다.</li>
+          <li><strong>컨테이너는 기본적으로 이미지의 <code>USER</code>를 따릅니다</strong> (대개 root). <code>ARCTURUS_CONTAINER_USER</code>(예 <code>1000:1000</code>)를 설정하면 비root 사용자로 강제합니다.</li>
+          <li><strong>컨테이너 앱은 전용 호스트 포트로도 직접 열립니다.</strong> 게이트웨이 경로만이 아니라요 — “전용 포트로 이동” 접근 모드가 여기에 의존하는 의도된 동작입니다. 포트 풀은 팀 네트워크로 방화벽 처리하세요.</li>
+        </ul>
+        <h3 class="reveal">공급망</h3>
+        <ul class="reveal">
+          <li><strong>의존성 설치는 올라온 지 7일이 안 된 npm 버전을 건너뜁니다</strong> (<code>bunfig.toml</code>의 <code>minimumReleaseAge</code>). 오염된 릴리스가 이 레포에 닿기 전에 발견·회수될 시간을 법니다. 급한 패치는 <code>minimumReleaseAgeExcludes</code>로 패키지별 예외 처리하세요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="guide-section" id="troubleshooting">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="num">08</span>
+          <h2>트러블슈팅</h2>
+        </div>
+        <h3 class="reveal">경로 프리픽스 아래에서 앱 에셋이 404</h3>
+        <p class="reveal">절대 경로 문제입니다 — <a href="#routing">라우팅 모드</a>를 보세요. 이 문제는 “proxy” 모드에서만 나타납니다. 컨테이너 앱은 “redirect”가 기본이니, 앱을 다시 “redirect”로 돌리면 전용 포트에서 서빙됩니다.</p>
+        <h3 class="reveal">재시작 후 포트가 이미 사용 중</h3>
+        <p class="reveal">프로세스가 남아 <code>EADDRINUSE</code>가 나면, 이름이 아니라 포트 기준으로 정리하세요:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="lsof -ti :7777 | xargs kill -9"><span class="accent">$</span> lsof -ti :7777 | xargs kill -9</pre>
+        </div>
+        <h3 class="reveal">admin 비밀번호를 잃어버렸어요</h3>
+        <p class="reveal">맨 첫 부팅에만 출력됩니다. <code>ARCTURUS_ADMIN_PASSWORD</code>를 설정하고 재시작하거나, 첫 실행 로그가 남아 있다면 거기서 확인하세요(<code>bun run server:logs</code>).</p>
+        <h3 class="reveal">서버 이전 후 배포가 실패해요</h3>
+        <p class="reveal"><code>data/</code> 디렉터리만 옮기고 env 키를 안 옮겼다면, env가 저장된 컨테이너 앱은 복호화에 실패합니다 — 백업에서 <code>data/env-key</code>(또는 <code>ARCTURUS_ENV_KEY</code>)를 복원하세요. 이전 머신에서 <code>secrets:init</code>을 썼다면 <code>.env.secrets</code>도 함께 복사하고 Keychain 키를 옮기세요: 이전 머신에서 <code>security find-generic-password -s arcturus-dotenvx -w</code>로 읽고, 새 머신에서 <code>security add-generic-password -s arcturus-dotenvx -a "$USER" -w "&lt;키&gt;"</code>로 저장합니다.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span><span class="star">✦</span> Arcturus</span>
+      <span>MIT License</span>
+      <div class="footer-links">
+        <a href="./">홈</a>
+        <a href="../guide.html" hreflang="en" lang="en">English</a>
+        <a href="https://github.com/chussum/arcturus">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/site.js"></script>
+</body>
+</html>

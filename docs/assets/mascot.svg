@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="arky-title">
+  <title id="arky-title">Arky — the Arcturus mascot, a baby bear hugging a star</title>
+  <!-- palette: bear #a06a42 · cream #ede9e0 · ink #2f2013 · accent #d9823b (matches favicon star) -->
+  <g stroke="#2f2013" stroke-width="5" stroke-linejoin="round">
+    <!-- ears -->
+    <circle cx="74" cy="50" r="21" fill="#a06a42"/>
+    <circle cx="166" cy="50" r="21" fill="#a06a42"/>
+    <circle cx="74" cy="50" r="10" fill="#ede9e0" stroke="none"/>
+    <circle cx="166" cy="50" r="10" fill="#ede9e0" stroke="none"/>
+    <!-- body -->
+    <ellipse cx="120" cy="190" rx="54" ry="40" fill="#a06a42"/>
+    <!-- feet -->
+    <ellipse cx="86" cy="222" rx="18" ry="12" fill="#a06a42"/>
+    <ellipse cx="154" cy="222" rx="18" ry="12" fill="#a06a42"/>
+    <ellipse cx="86" cy="224" rx="9.5" ry="6" fill="#ede9e0" stroke="none"/>
+    <ellipse cx="154" cy="224" rx="9.5" ry="6" fill="#ede9e0" stroke="none"/>
+    <!-- head -->
+    <circle cx="120" cy="98" r="60" fill="#a06a42"/>
+  </g>
+  <!-- face -->
+  <ellipse cx="120" cy="118" rx="25" ry="18" fill="#ede9e0"/>
+  <circle cx="95" cy="95" r="6.5" fill="#2f2013"/>
+  <circle cx="145" cy="95" r="6.5" fill="#2f2013"/>
+  <circle cx="97.2" cy="92.8" r="2" fill="#ede9e0"/>
+  <circle cx="147.2" cy="92.8" r="2" fill="#ede9e0"/>
+  <path d="M120 104c5.5 0 9 2.5 9 6.2 0 4.6-5.4 7.8-9 7.8s-9-3.2-9-7.8c0-3.7 3.5-6.2 9-6.2z" fill="#2f2013"/>
+  <path d="M120 118v5M111 127q9 8 18 0" fill="none" stroke="#2f2013" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="78" cy="113" r="8" fill="#d9823b" opacity="0.45"/>
+  <circle cx="162" cy="113" r="8" fill="#d9823b" opacity="0.45"/>
+  <!-- the star (same ✦ as the favicon), hugged tight -->
+  <path d="M32 10c1.6 9.8 6.4 17.8 22 22-15.6 4.2-20.4 12.2-22 22-1.6-9.8-6.4-17.8-22-22 15.6-4.2 20.4-12.2 22-22z"
+        transform="translate(120 184) scale(1.5) translate(-32 -32)"
+        fill="#d9823b" stroke="#2f2013" stroke-width="3.3" stroke-linejoin="round"/>
+  <!-- paws -->
+  <circle cx="92" cy="200" r="13" fill="#a06a42" stroke="#2f2013" stroke-width="5"/>
+  <circle cx="148" cy="200" r="13" fill="#a06a42" stroke="#2f2013" stroke-width="5"/>
+  <!-- stray sparkles -->
+  <path d="M32 10c1.6 9.8 6.4 17.8 22 22-15.6 4.2-20.4 12.2-22 22-1.6-9.8-6.4-17.8-22-22 15.6-4.2 20.4-12.2 22-22z"
+        transform="translate(50 130) scale(0.42) translate(-32 -32)" fill="#d9823b" opacity="0.85"/>
+  <path d="M32 10c1.6 9.8 6.4 17.8 22 22-15.6 4.2-20.4 12.2-22 22-1.6-9.8-6.4-17.8-22-22 15.6-4.2 20.4-12.2 22-22z"
+        transform="translate(192 122) scale(0.32) translate(-32 -32)" fill="#d9823b" opacity="0.85"/>
+</svg>

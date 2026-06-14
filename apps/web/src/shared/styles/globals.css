@@ -1,0 +1,92 @@
+/* Arcturus v3 — warm editorial dark (benchmarked against designmd.co). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
+}
+
+body {
+  font-family: "Geist Variable", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.15px;
+  color: #ede9e0;
+  background-color: #111008;
+  /* Warm hearth glow drifting in from the upper left — atmosphere, not decoration. */
+  background-image: radial-gradient(
+      1200px 700px at 18% -10%,
+      rgba(140, 95, 45, 0.16),
+      transparent 65%
+    ), radial-gradient(900px 600px at 95% 15%, rgba(90, 60, 25, 0.1), transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Film grain keeps the large warm-dark fields from reading flat. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.45;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.85 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a {
+  color: #d9823b;
+  text-decoration: none;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+a:hover {
+  color: #eb9a55;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(217, 130, 59, 0.32);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(237, 233, 224, 0.16);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

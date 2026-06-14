@@ -1,0 +1,5 @@
+# Supply-chain guard: never resolve npm versions younger than 7 days, so a
+# compromised release gets discovered/unpublished before it can reach us.
+# Exempt urgent security patches per package via minimumReleaseAgeExcludes.
+[install]
+minimumReleaseAge = 604800
