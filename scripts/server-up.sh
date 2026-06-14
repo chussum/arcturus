@@ -57,6 +57,27 @@ print_secrets_guide() {
 # otherwise blue-green never alternates colours and rebuilds the live one in place.
 pm2_online() { bunx pm2 describe "$1" 2>/dev/null | sed $'s/\x1b\\[[0-9;]*m//g' | grep -qw 'online'; }
 
+DB_DIR="${ARCTURUS_DATA_DIR:-apps/api/data}"
+
+# First-run admin seed is needed when there's no DB yet, OR the DB exists but a
+# prior boot created the schema and then crashed before seeding the admin (zero
+# user rows). Boot migrations create arcturus.db before the seeder runs, so a
+# failed first boot leaves an empty DB — keying only off file-absence misses that
+# case and the admin-password prompt is skipped forever → permanent crash loop.
+needs_admin_seed() {
+  local db="$DB_DIR/arcturus.db"
+  [ ! -f "$db" ] && return 0
+  command -v sqlite3 >/dev/null 2>&1 || return 1   # can't tell → assume seeded
+  local n
+  # -readonly + .timeout: safe to read even while a crash-looping old API writes
+  # the WAL (SQLite allows concurrent readers). .timeout is a dot-command (no
+  # output) — a `PRAGMA busy_timeout=` would print its value and corrupt $n. On
+  # any read error we fall back to "seeded" so a healthy install never re-prompts.
+  n=$(sqlite3 -readonly -cmd ".timeout 2000" "$db" "SELECT count(*) FROM users" 2>/dev/null || echo "")
+  [ "$n" = "0" ] && return 0
+  return 1
+}
+
 # 1. Prerequisites ------------------------------------------------------------
 if ! command -v bun >/dev/null 2>&1; then
   warn "Bun이 설치되어 있지 않습니다. 먼저 설치해 주세요:"
@@ -153,10 +174,11 @@ fi
 # 4.5 First-run admin password ------------------------------------------------
 # On the very first boot there's no admin account yet. pm2 has no TTY, so the
 # seeder can't prompt there — instead we ask here, in the shell, and hand the
-# value to the API via api-swap.sh's env block. Skipped once the DB exists, when
-# the password is already provided, or when stdin isn't a terminal (CI).
-DB_DIR="${ARCTURUS_DATA_DIR:-apps/api/data}"
-if [ ! -f "$DB_DIR/arcturus.db" ] \
+# value to the API via api-swap.sh's env block. Skipped once an admin is seeded
+# (DB has user rows), when the password is already provided, or when stdin isn't
+# a terminal (CI). needs_admin_seed also covers an empty DB left by a crashed
+# first boot, so we don't skip-and-crash-loop forever.
+if needs_admin_seed \
    && [ -t 0 ] \
    && [ -z "${ARCTURUS_ADMIN_PASSWORD:-}" ] \
    && ! grep -qE '^[[:space:]]*ARCTURUS_ADMIN_PASSWORD=' apps/api/.env 2>/dev/null; then
