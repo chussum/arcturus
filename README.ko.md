@@ -60,7 +60,7 @@ git clone <repo-url> && cd arcturus
 bun run server:up
 ```
 
-설치는 이게 전부입니다. 의존성을 설치하고, 첫 실행이면 대시보드를 빌드하고, pm2로 전부 띄워줍니다. 브라우저에서 `http://<host>:7777`을 열면 끝입니다. 첫 실행이면 `server:up`이 터미널에서 어드민 비밀번호를 직접 입력받습니다 — 미리 `ARCTURUS_ADMIN_PASSWORD`로 정해두면 프롬프트를 건너뜁니다.
+설치는 이게 전부입니다. 의존성을 설치하고, 첫 실행이면 대시보드를 빌드하고, pm2로 전부 띄워줍니다. 브라우저에서 `http://<host>:7777`을 열면 끝입니다. 첫 실행이면서 암호화된 `.env.secrets`가 아직 없으면 `server:up`이 프로덕션 시크릿 설정 방법을 세 가지로 물어봅니다 — **1) 자동 생성**, **2) `ARCTURUS_ENV_KEY`·`ARCTURUS_JWT_SECRET` 직접 입력**, **3) 환경 변수로 주입하는 방법 안내만 보기** — 그 다음 터미널에서 어드민 비밀번호를 입력받습니다. 키(또는 `ARCTURUS_ADMIN_PASSWORD`)를 미리 정해두면 프롬프트를 건너뜁니다. 터미널이 없으면(CI/pm2) 반쯤 설정된 채 기동하지 않고 안내만 출력한 뒤 종료합니다.
 
 | 명령 | 동작 |
 |---|---|
@@ -159,7 +159,7 @@ cp apps/web/.env.example apps/web/.env
 **시크릿과 키**
 
 - **env 변수는 저장 시 암호화됩니다.** 앱 env 변수는 SQLite에 AES-256-GCM으로 암호화해 저장됩니다. 키는 `ARCTURUS_ENV_KEY`를 쓰거나, 없으면 한 번 생성되어 `data/env-key`(권한 `0600`)에 저장됩니다. `data/`는 `0700`, DB 파일은 `0600`입니다. 키를 잃거나 바꾸면 기존 값을 복호화할 수 없습니다. 기존 평문 행은 다음 부팅 때 다시 암호화됩니다. 평문 키 파일은 설정 없이 바로 쓰기 위한 편의 장치일 뿐, 오래 운영하는 서버에는 권장하지 않습니다.
-- **`bun run secrets:init`(macOS)을 실행하면 디스크에서 평문 키가 사라집니다.** `ARCTURUS_ENV_KEY`와 `ARCTURUS_JWT_SECRET`을 dotenvx로 암호화한 `.env.secrets`로 옮기고, 복호화 키는 macOS Keychain(서비스명 `arcturus-dotenvx`)에만 둡니다. 서버 래퍼가 재기동 때마다 Keychain에서 다시 가져오므로 디스크에도 pm2 dump에도 시크릿이 남지 않습니다. 기존 키 파일 값은 그대로 옮겨져 암호화된 env 행과 로그인 세션이 유지됩니다.
+- **`bun run secrets:init`(macOS)을 실행하면 디스크에서 평문 키가 사라집니다.** `ARCTURUS_ENV_KEY`와 `ARCTURUS_JWT_SECRET`을 dotenvx로 암호화한 `.env.secrets`로 옮기고, 복호화 키는 macOS Keychain(서비스명 `arcturus-dotenvx`)에만 둡니다. 서버 래퍼가 재기동 때마다 Keychain에서 다시 가져오므로 디스크에도 pm2 dump에도 시크릿이 남지 않습니다. 기존 키 파일 값은 그대로 옮겨져 암호화된 env 행과 로그인 세션이 유지되며, 키도 파일도 없으면 새로 생성합니다. 첫 프로덕션 기동 때 `server:up`이 대신 실행해 줍니다(메뉴 1번). 생성 대신 값을 직접 입력하려면 `--input`을 붙이세요.
   - 이후 시크릿 추가·수정: `.env.secrets`에 `KEY=값`을 적고 `bun run secrets:update`(또는 `bunx dotenvx set KEY 값 -f .env.secrets`) 후 `bun run server:restart`.
   - 다른 머신으로 옮기기 전 키 백업: `security find-generic-password -s arcturus-dotenvx -w`.
   - Linux에는 Keychain이 없으니 두 환경 변수를 직접 주입하거나 파일 fallback을 그대로 쓰세요(평문 키 파일로 돌고 있으면 API가 경고 로그를 남깁니다).

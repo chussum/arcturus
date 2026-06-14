@@ -60,8 +60,8 @@ bun run server:up"><span class="accent">$</span> git clone https://github.com/ch
         </div>
         <p class="reveal">That’s it — it installs dependencies, builds the dashboard and starts everything under pm2, all idempotent. Open <code>http://&lt;host&gt;:7777</code>.</p>
         <div class="callout reveal">
-          <p>On the first run, if there's no admin yet, you're <strong>prompted to set the admin password</strong> right in the terminal.</p>
-          <p>Want to skip the prompt? Set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand.</p>
+          <p>On the first run, if there's no encrypted <code>.env.secrets</code> yet, <code>server:up</code> offers <strong>three ways to set up the production secrets</strong> — auto-generate them, enter your own <code>ARCTURUS_ENV_KEY</code>/<code>ARCTURUS_JWT_SECRET</code>, or just print a guide for injecting them via environment variables — then <strong>prompts you to set the admin password</strong>.</p>
+          <p>Want to skip the prompts? Set the keys (or <code>ARCTURUS_ADMIN_PASSWORD</code>) beforehand. With no terminal (CI/pm2) it prints the guide and exits instead of booting half-configured.</p>
         </div>
         <h3 class="reveal">Installing Docker (no Docker Desktop needed)</h3>
         <p class="reveal">Arcturus talks to the Docker API socket directly, so Docker Desktop is never required — which matters because Desktop needs a paid subscription at companies with 250+ employees or $10M+ annual revenue. Docker Engine and Colima are free open source for any commercial use.</p>
@@ -100,7 +100,7 @@ colima start"><span class="comment"># macOS — Colima (MIT) + the docker CLI:</
         <div class="codeblock reveal">
           <pre data-copy="bun run secrets:init"><span class="accent">$</span> bun run secrets:init</pre>
         </div>
-        <p class="reveal">Existing values are migrated as-is, so encrypted app env vars and live sessions survive. To add or change a secret later, edit <code>.env.secrets</code> with plain <code>KEY=value</code> lines, then re-encrypt and restart:</p>
+        <p class="reveal">Existing values are migrated as-is, so encrypted app env vars and live sessions survive — and when neither a key nor a file exists yet, fresh ones are generated. <code>server:up</code> runs this for you on the first production boot; add <code>--input</code> to type or paste your own values instead of generating them. To add or change a secret later, edit <code>.env.secrets</code> with plain <code>KEY=value</code> lines, then re-encrypt and restart:</p>
         <div class="codeblock reveal">
           <pre data-copy="bun run secrets:update
 bun run server:restart"><span class="accent">$</span> bun run secrets:update

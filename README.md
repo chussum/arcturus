@@ -60,7 +60,7 @@ git clone <repo-url> && cd arcturus
 bun run server:up
 ```
 
-That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. On the first run `server:up` asks you to set the admin password right in the terminal — or set `ARCTURUS_ADMIN_PASSWORD` beforehand to skip the prompt.
+That's the whole setup. It installs dependencies, builds the dashboard on the first run, and starts everything under pm2. Open `http://<host>:7777` and you're in. On the first run, when no encrypted `.env.secrets` exists yet, `server:up` offers three ways to set up the production secrets — **1) auto-generate** them, **2) enter** your own `ARCTURUS_ENV_KEY`/`ARCTURUS_JWT_SECRET`, or **3) just print a guide** for injecting them via environment variables — then asks you to set the admin password right in the terminal. Set the keys (or `ARCTURUS_ADMIN_PASSWORD`) beforehand to skip the prompts; with no terminal (CI/pm2) it prints the guide and exits instead of booting half-configured.
 
 | Command | What it does |
 |---|---|
@@ -159,7 +159,7 @@ Sensible defaults, with the details here if you want them.
 **Secrets and keys**
 
 - **Env vars are encrypted at rest.** App env vars are stored AES-256-GCM encrypted in SQLite. The key comes from `ARCTURUS_ENV_KEY`, or is generated once as `data/env-key` (mode `0600`); `data/` is `0700` and the DB files `0600`. Lose or change the key and existing values can't be decrypted. Old plaintext rows are re-encrypted on the next boot. The plaintext key file is a zero-config convenience, not recommended for a long-lived server.
-- **`bun run secrets:init` (macOS) takes the keys off disk.** It moves `ARCTURUS_ENV_KEY` and `ARCTURUS_JWT_SECRET` into a dotenvx-encrypted `.env.secrets` and keeps the only decryption key in the macOS Keychain (service `arcturus-dotenvx`). The server wrapper re-fetches it on every restart, so no secret lives on disk or in pm2's dump. Existing key files are migrated as-is, so encrypted env rows and live sessions survive.
+- **`bun run secrets:init` (macOS) takes the keys off disk.** It moves `ARCTURUS_ENV_KEY` and `ARCTURUS_JWT_SECRET` into a dotenvx-encrypted `.env.secrets` and keeps the only decryption key in the macOS Keychain (service `arcturus-dotenvx`). The server wrapper re-fetches it on every restart, so no secret lives on disk or in pm2's dump. Existing key files are migrated as-is, so encrypted env rows and live sessions survive — and when neither key nor file exists yet, fresh ones are generated. `server:up` runs this for you on the first production boot (menu option 1); pass `--input` to type/paste your own values instead of generating them.
   - Add or change a secret later: write `KEY=value` into `.env.secrets`, run `bun run secrets:update` (or `bunx dotenvx set KEY value -f .env.secrets`), then `bun run server:restart`.
   - Back up the key before switching machines: `security find-generic-password -s arcturus-dotenvx -w`.
   - Linux has no Keychain — export the two env vars yourself, or stay on the file fallback (the API warns when it's running on plaintext key files).

@@ -8,6 +8,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# --input: prompt for each fresh value instead of auto-generating (used by
+# server-up.sh's "직접 입력" menu choice). Blank input falls back to auto-generate.
+INPUT_MODE=false
+for arg in "$@"; do
+  [ "$arg" = "--input" ] && INPUT_MODE=true
+done
+
 KEYCHAIN_SERVICE="arcturus-dotenvx"
 SECRETS_FILE=".env.secrets"
 DATA_DIR="${ARCTURUS_DATA_DIR:-apps/api/data}"
@@ -74,6 +81,18 @@ resolve_value() { # resolve_value <current> <legacy file> <label>
   elif [ -f "$file" ]; then
     say "$label: 기존 $file 값을 이전 (기존 데이터/세션 유지)" >&2
     printf '%s' "$(cat "$file")"
+  elif [ "$INPUT_MODE" = true ]; then
+    # Prompt on /dev/tty so this works even though the function runs inside $(...)
+    # (stdout is captured for the value). Blank → auto-generate.
+    local entered
+    read -rp "$label 값 입력 (빈칸=자동 생성 / Enter value, blank = auto-generate): " entered </dev/tty
+    if [ -n "$entered" ]; then
+      say "$label: 입력값 사용" >&2
+      printf '%s' "$entered"
+    else
+      say "$label: 새로 생성" >&2
+      openssl rand -hex 32
+    fi
   else
     say "$label: 새로 생성" >&2
     openssl rand -hex 32

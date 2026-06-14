@@ -34,6 +34,24 @@ say()  { printf '\033[1;33m→ %s\033[0m\n' "$1"; }
 ok()   { printf '\033[1;32m✓ %s\033[0m\n' "$1"; }
 warn() { printf '\033[1;31m! %s\033[0m\n' "$1"; }
 
+# How to provide the production secrets without the bundled .env.secrets flow.
+# Printed for the "안내만 보기" menu choice and whenever there's no TTY to prompt.
+print_secrets_guide() {
+  echo "프로덕션은 다음 시크릿이 API 프로세스 환경에 매 (재)기동마다 있어야 합니다 /"
+  echo "Production needs these in the API process environment on every (re)start:"
+  echo "    ARCTURUS_ENV_KEY       (앱 env 암호화 키 / app-env encryption key)"
+  echo "    ARCTURUS_JWT_SECRET    (세션 서명 키 / session signing secret)"
+  echo "    ARCTURUS_ADMIN_PASSWORD(최초 1회 admin 시드용 / first-run admin seed only)"
+  echo ""
+  echo "  · 권장(이 pm2 번들 플로우) / Recommended: bun run secrets:init"
+  echo "      → .env.secrets에 암호화 저장하고 키는 Keychain에 보관, 매 기동 시 자동 주입."
+  echo "  · 외부/관리형 배포 / External or managed deploy:"
+  echo "      자체 프로세스 매니저·시크릿 매니저에 위 환경 변수를 주입하세요."
+  echo "      (주의: 부모 셸 export 만으로는 pm2 autorestart에 남지 않습니다 /"
+  echo "       a parent-shell export alone does NOT survive pm2 autorestart.)"
+  echo "  · 값 생성 예 / Generate a value:  openssl rand -hex 32"
+}
+
 # pm2 7.x colourises `describe` even when piped ("\x1b[1monline\x1b[22m"), gluing
 # "online" into "1monline" so `grep -w online` never matches. Strip ANSI first —
 # otherwise blue-green never alternates colours and rebuilds the live one in place.
@@ -89,6 +107,48 @@ done
 
 mkdir -p logs
 chmod 700 logs
+
+# 4.4 First-run secrets -------------------------------------------------------
+# Production is fail-closed: the API throws on boot without ARCTURUS_ENV_KEY /
+# ARCTURUS_JWT_SECRET (env-crypto.service.ts / session.service.ts). They're
+# normally injected from the dotenvx-encrypted .env.secrets by with-secrets.sh.
+# If that file is missing and the keys aren't already in the environment, guide
+# the operator here instead of letting the API die with a cryptic pm2-log error.
+# Skipped once .env.secrets exists or the keys are exported.
+if [ "${NODE_ENV:-}" = "production" ] \
+   && [ ! -f .env.secrets ] \
+   && [ -z "${ARCTURUS_ENV_KEY:-}" ] \
+   && [ -z "${ARCTURUS_JWT_SECRET:-}" ]; then
+  if [ -t 0 ]; then
+    say "암호화 시크릿(.env.secrets)이 없습니다 — 설정 방법을 선택하세요 / No encrypted secrets yet — choose a setup method:"
+    echo "  1) 자동 생성 / Auto-generate — 키를 새로 만들어 .env.secrets에 암호화 저장 (권장 / recommended)"
+    echo "  2) 직접 입력 / Enter values — ARCTURUS_ENV_KEY · ARCTURUS_JWT_SECRET 값을 붙여넣어 저장"
+    echo "  3) 안내만 보기 / Just show the guide — 환경 변수로 직접 주입하는 방법 안내 후 종료"
+    read -rp "선택 / Choose [1/2/3] (기본 / default 1): " SECRETS_CHOICE
+    case "${SECRETS_CHOICE:-1}" in
+      2)
+        say "시크릿 직접 입력 (secrets:init --input)..."
+        bash scripts/secrets-init.sh --input
+        ;;
+      3)
+        echo ""
+        print_secrets_guide
+        echo ""
+        ok "안내 출력 완료 — 설정 후 다시 'bun run server:up' 을 실행하세요 / Set them up, then run 'bun run server:up' again."
+        exit 0
+        ;;
+      *)
+        say "시크릿 자동 생성 (secrets:init)..."
+        bash scripts/secrets-init.sh
+        ;;
+    esac
+  else
+    warn "암호화 시크릿(.env.secrets)이 없고 대화형 터미널이 아닙니다 / No encrypted secrets and no interactive terminal."
+    echo ""
+    print_secrets_guide
+    exit 1
+  fi
+fi
 
 # 4.5 First-run admin password ------------------------------------------------
 # On the very first boot there's no admin account yet. pm2 has no TTY, so the

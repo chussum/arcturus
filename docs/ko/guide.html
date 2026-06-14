@@ -60,8 +60,8 @@ bun run server:up"><span class="accent">$</span> git clone https://github.com/ch
         </div>
         <p class="reveal">이게 전부입니다 — 의존성 설치, 대시보드 빌드, pm2 기동까지 알아서 하고, 전 과정은 여러 번 실행해도 안전합니다. <code>http://&lt;host&gt;:7777</code>을 여세요.</p>
         <div class="callout reveal">
-          <p>첫 실행 시 관리자 계정이 없으면 터미널에서 <strong>어드민 비밀번호를 직접 입력</strong>받습니다.</p>
-          <p>프롬프트를 건너뛰려면 미리 <code>ARCTURUS_ADMIN_PASSWORD</code>를 설정해 두세요.</p>
+          <p>첫 실행이면서 암호화된 <code>.env.secrets</code>가 아직 없으면 <code>server:up</code>이 <strong>프로덕션 시크릿 설정 방법을 세 가지로</strong> 물어봅니다 — 자동 생성, <code>ARCTURUS_ENV_KEY</code>·<code>ARCTURUS_JWT_SECRET</code> 직접 입력, 또는 환경 변수로 주입하는 방법 안내만 보기 — 그 다음 터미널에서 <strong>어드민 비밀번호를 입력</strong>받습니다.</p>
+          <p>프롬프트를 건너뛰려면 키(또는 <code>ARCTURUS_ADMIN_PASSWORD</code>)를 미리 설정해 두세요. 터미널이 없으면(CI/pm2) 반쯤 설정된 채 기동하지 않고 안내만 출력한 뒤 종료합니다.</p>
         </div>
         <h3 class="reveal">Docker 설치 (Docker Desktop 불필요)</h3>
         <p class="reveal">Arcturus는 Docker API 소켓에 직접 통신하므로 Docker Desktop이 전혀 필요 없습니다 — Desktop은 직원 250명 이상 또는 연매출 $10M 이상 기업에서 유료 구독이 필요하지만, Docker Engine과 Colima는 상업적 사용에도 무료인 오픈소스입니다.</p>
@@ -100,7 +100,7 @@ colima start"><span class="comment"># macOS — Colima (MIT) + docker CLI:</span
         <div class="codeblock reveal">
           <pre data-copy="bun run secrets:init"><span class="accent">$</span> bun run secrets:init</pre>
         </div>
-        <p class="reveal">기존 값은 그대로 이전되므로 암호화된 앱 env 변수와 로그인 세션이 유지됩니다. 이후 시크릿을 추가·수정하려면 <code>.env.secrets</code>에 평문 <code>KEY=값</code>으로 적은 뒤 재암호화하고 재시작하세요:</p>
+        <p class="reveal">기존 값은 그대로 이전되므로 암호화된 앱 env 변수와 로그인 세션이 유지되며, 키도 파일도 없으면 새로 생성합니다. 첫 프로덕션 기동 때 <code>server:up</code>이 대신 실행해 주며, 생성 대신 값을 직접 입력하려면 <code>--input</code>을 붙이세요. 이후 시크릿을 추가·수정하려면 <code>.env.secrets</code>에 평문 <code>KEY=값</code>으로 적은 뒤 재암호화하고 재시작하세요:</p>
         <div class="codeblock reveal">
           <pre data-copy="bun run secrets:update
 bun run server:restart"><span class="accent">$</span> bun run secrets:update
