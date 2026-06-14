@@ -887,6 +887,34 @@ td.mono {
   font-family: var(--font-mono);
 }
 
+.callout p {
+  margin: 0;
+}
+
+.callout p + p {
+  margin-top: 8px;
+}
+
+/* inline code inside callouts gets the same pill as prose code, but is
+   allowed to wrap (long flag/command fragments shouldn't overflow) */
+.callout code {
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: var(--cream);
+}
+
+/* a full command on its own line — easier to read and copy than inline */
+.callout .cmd {
+  display: block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
 /* ---------------------------------------------------------- reveal */
 
 /* hidden state only applies when JS confirmed itself via html.js —

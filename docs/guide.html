@@ -59,7 +59,10 @@ bun run server:up"><span class="accent">$</span> git clone https://github.com/ch
 <span class="accent">$</span> bun run server:up</pre>
         </div>
         <p class="reveal">That’s it — it installs dependencies, builds the dashboard and starts everything under pm2, all idempotent. Open <code>http://&lt;host&gt;:7777</code>.</p>
-        <div class="callout reveal">On the first run, if there's no admin yet, you're <strong>prompted to set the admin password</strong> right in the terminal — or set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand to skip it. A non-interactive first run instead prints a generated password once to the logs (<code>bun run server:logs</code>).</div>
+        <div class="callout reveal">
+          <p>On the first run, if there's no admin yet, you're <strong>prompted to set the admin password</strong> right in the terminal.</p>
+          <p>Want to skip the prompt? Set <code>ARCTURUS_ADMIN_PASSWORD</code> beforehand.</p>
+        </div>
         <h3 class="reveal">Installing Docker (no Docker Desktop needed)</h3>
         <p class="reveal">Arcturus talks to the Docker API socket directly, so Docker Desktop is never required — which matters because Desktop needs a paid subscription at companies with 250+ employees or $10M+ annual revenue. Docker Engine and Colima are free open source for any commercial use.</p>
         <div class="codeblock reveal">
@@ -74,7 +77,11 @@ colima start"><span class="comment"># macOS — Colima (MIT) + the docker CLI:</
 <span class="accent">$</span> brew install colima docker
 <span class="accent">$</span> colima start</pre>
         </div>
-        <div class="callout reveal">On macOS, the <code>docker</code> CLI finds Colima's socket automatically — but Arcturus reads <code>DOCKER_HOST</code> instead of docker contexts. Add this to <code>~/.zshrc</code> (not <code>apps/api/.env</code>), then re-open your terminal or run <code>source ~/.zshrc</code>: <code>export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock</code></div>
+        <div class="callout reveal">
+          <p>On macOS, the <code>docker</code> CLI finds Colima's socket automatically — but Arcturus reads <code>DOCKER_HOST</code> instead of docker contexts.</p>
+          <p>Add this to <code>~/.zshrc</code> (not <code>apps/api/.env</code>), then re-open your terminal or run <code>source ~/.zshrc</code>:</p>
+          <code class="cmd">export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock</code>
+        </div>
         <h3 class="reveal">Operating the server</h3>
         <div class="table-clip reveal">
           <table class="table">
@@ -84,7 +91,7 @@ colima start"><span class="comment"># macOS — Colima (MIT) + the docker CLI:</
               <tr><td class="mono">bun run server:up -- --build</td><td class="desc">Same, but forces a dashboard rebuild — use after <code>git pull</code> to pick up any code changes</td></tr>
               <tr><td class="mono">bun run server:down</td><td class="desc">Stop everything</td></tr>
               <tr><td class="mono">bun run server:status</td><td class="desc">Process status</td></tr>
-              <tr><td class="mono">bun run server:logs</td><td class="desc">Tail logs (admin password lives here on first run)</td></tr>
+              <tr><td class="mono">bun run server:logs</td><td class="desc">Tail logs</td></tr>
             </tbody>
           </table>
         </div>
@@ -99,7 +106,11 @@ colima start"><span class="comment"># macOS — Colima (MIT) + the docker CLI:</
 bun run server:restart"><span class="accent">$</span> bun run secrets:update
 <span class="accent">$</span> bun run server:restart</pre>
         </div>
-        <div class="callout reveal">Before moving to another machine, back up the Keychain key: <code>security find-generic-password -s arcturus-dotenvx -w</code>. Linux has no Keychain — export <code>ARCTURUS_JWT_SECRET</code> / <code>ARCTURUS_ENV_KEY</code> yourself or stay on the file fallback. Details in <a href="#security">Security notes</a>.</div>
+        <div class="callout reveal">
+          <p>Before moving to another machine, back up the Keychain key:</p>
+          <code class="cmd">security find-generic-password -s arcturus-dotenvx -w</code>
+          <p>Linux has no Keychain — export <code>ARCTURUS_JWT_SECRET</code> / <code>ARCTURUS_ENV_KEY</code> yourself or stay on the file fallback. Details in <a href="#security">Security notes</a>.</p>
+        </div>
       </div>
     </section>
 
@@ -190,7 +201,10 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
           <li><strong>Can view</strong> — sees the app card, status, URL, and deployment history. Env vars and live logs are hidden.</li>
           <li><strong>Can manage</strong> — everything view can see, plus deploying new builds, env editing, memory/routing settings, stop, restart, and rollback. Deleting and changing sharing settings remain owner/admin-only.</li>
         </ul>
-        <div class="callout reveal">A <strong>manage</strong> collaborator can deploy to the shared app — <code>arcturus deploy --name &lt;owner&gt;/&lt;app&gt;</code>, or the dashboard's redeploy button. Deleting and sharing config stay owner/admin-only.</div>
+        <div class="callout reveal">
+          <p>A <strong>manage</strong> collaborator can deploy to the shared app — <code>arcturus deploy --name &lt;owner&gt;/&lt;app&gt;</code>, or the dashboard's redeploy button.</p>
+          <p>Deleting and sharing config stay owner/admin-only.</p>
+        </div>
       </div>
     </section>
 
@@ -206,7 +220,10 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
           <li><strong>Referer fallback</strong> — unmatched requests (<code>/static/app.js</code>) are re-routed to the app the browser is viewing.</li>
           <li><strong>Dedicated port</strong> — every container app keeps a fixed port (<code>30000+</code>) with zero base-path issues.</li>
         </ol>
-        <div class="callout reveal">New container apps default to the <strong>“redirect”</strong> routing mode — visitors are bounced to the dedicated port, so the base-path problem never appears. Prefer path-based serving? Switch the app to <strong>“proxy”</strong> in its detail page.</div>
+        <div class="callout reveal">
+          <p>New container apps default to the <strong>“redirect”</strong> routing mode — visitors are bounced to the dedicated port, so the base-path problem never appears.</p>
+          <p>Prefer path-based serving? Switch the app to <strong>“proxy”</strong> in its detail page.</p>
+        </div>
       </div>
     </section>
 
@@ -237,7 +254,10 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
             </tbody>
           </table>
         </div>
-        <div class="callout reveal">The secrets aren’t in this table on purpose. <code>ARCTURUS_JWT_SECRET</code> and <code>ARCTURUS_ENV_KEY</code> are managed in the encrypted <code>.env.secrets</code> via <a href="#setup">Hardening secrets</a>, and <code>ARCTURUS_ADMIN_PASSWORD</code> is set via env, prompted in the terminal on first run, or printed once to the logs when that run is non-interactive. All three are generated for local dev and <strong>required in production</strong> — see <a href="#security">Security notes</a>.</div>
+        <div class="callout reveal">
+          <p>The secrets aren’t in this table on purpose. <code>ARCTURUS_JWT_SECRET</code> and <code>ARCTURUS_ENV_KEY</code> are managed in the encrypted <code>.env.secrets</code> via <a href="#setup">Hardening secrets</a>, and <code>ARCTURUS_ADMIN_PASSWORD</code> is set via env or prompted in the terminal on first run.</p>
+          <p>All three are generated for local dev and <strong>required in production</strong> — see <a href="#security">Security notes</a>.</p>
+        </div>
       </div>
     </section>
 
@@ -253,7 +273,11 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
           <li><strong>File permissions are enforced on every boot</strong> — <code>data/</code> is <code>0700</code>; the DB and key files are <code>0600</code>.</li>
           <li><strong>The generated plaintext key files are a zero-config convenience.</strong> For a long-lived server, move them into the encrypted file + Keychain with <code>bun run secrets:init</code> — see <a href="#setup">Hardening secrets</a>.</li>
         </ul>
-        <div class="callout warn reveal">Losing or changing <code>ARCTURUS_ENV_KEY</code> makes existing env values <strong>undecryptable</strong>. Back the key up alongside your data directory. After <code>secrets:init</code> the key lives in the Keychain — export it with <code>security find-generic-password -s arcturus-dotenvx -w</code>.</div>
+        <div class="callout warn reveal">
+          <p>Losing or changing <code>ARCTURUS_ENV_KEY</code> makes existing env values <strong>undecryptable</strong>. Back the key up alongside your data directory.</p>
+          <p>After <code>secrets:init</code> the key lives in the Keychain — export it with:</p>
+          <code class="cmd">security find-generic-password -s arcturus-dotenvx -w</code>
+        </div>
         <h3 class="reveal">Accounts &amp; tokens</h3>
         <ul class="reveal">
           <li><strong>Login, signup and API-token creation are limited to 10 requests/minute per IP</strong> to blunt password guessing. Deploys get 20/minute.</li>
@@ -289,7 +313,7 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
           <pre data-copy="lsof -ti :7777 | xargs kill -9"><span class="accent">$</span> lsof -ti :7777 | xargs kill -9</pre>
         </div>
         <h3 class="reveal">Lost the admin password</h3>
-        <p class="reveal">You set it on the very first boot — interactively in the terminal, or it’s printed once to the logs on a non-interactive run (<code>bun run server:logs</code>). If another admin exists, they can send you a one-time reset link from the Team page.</p>
+        <p class="reveal">You set it on the very first boot — interactively in the terminal, or beforehand via <code>ARCTURUS_ADMIN_PASSWORD</code>. If another admin exists, they can send you a one-time reset link from the Team page.</p>
         <h3 class="reveal">Deploy fails after moving the server</h3>
         <p class="reveal">If you migrated the <code>data/</code> directory but not the env key, container apps with saved env vars can’t decrypt them — restore <code>data/env-key</code> (or your <code>ARCTURUS_ENV_KEY</code>) from backup. If the old machine used <code>secrets:init</code>, copy <code>.env.secrets</code> too and move the Keychain key: read it on the old machine with <code>security find-generic-password -s arcturus-dotenvx -w</code>, then store it on the new one with <code>security add-generic-password -s arcturus-dotenvx -a "$USER" -w "&lt;key&gt;"</code>.</p>
       </div>

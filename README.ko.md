@@ -71,7 +71,7 @@ bun run server:up
 | `bun run server:restart` | `server:up -- --api` 단축키 |
 | `bun run server:down` | 전체 중지 |
 | `bun run server:status` | 프로세스 상태 |
-| `bun run server:logs` | 로그 보기 (첫 실행 admin 비밀번호가 여기 있습니다) |
+| `bun run server:logs` | 로그 보기 |
 
 ## CLI
 
@@ -127,7 +127,7 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-시크릿은 이 표에 일부러 넣지 않았습니다. `ARCTURUS_JWT_SECRET`·`ARCTURUS_ENV_KEY`는 레포 루트의 dotenvx 암호화 `.env.secrets`에서 `bun run secrets:init`으로 관리하고(`.env.secrets` 값이 `apps/api/.env`보다 우선), `ARCTURUS_ADMIN_PASSWORD`는 env로 지정하거나, 첫 실행 때 터미널에서 입력받거나, 비대화형 실행이면 로그에 1회 출력됩니다. 셋 다 로컬 dev에선 자동 생성되고 **프로덕션에선 필수**입니다 — 자세한 건 보안 참고를 보세요.
+시크릿은 이 표에 일부러 넣지 않았습니다. `ARCTURUS_JWT_SECRET`·`ARCTURUS_ENV_KEY`는 레포 루트의 dotenvx 암호화 `.env.secrets`에서 `bun run secrets:init`으로 관리하고(`.env.secrets` 값이 `apps/api/.env`보다 우선), `ARCTURUS_ADMIN_PASSWORD`는 env로 지정하거나 첫 실행 때 터미널에서 입력받습니다. 셋 다 로컬 dev에선 자동 생성되고 **프로덕션에선 필수**입니다 — 자세한 건 보안 참고를 보세요.
 
 | 환경 변수 | 기본값 | 설명 |
 |---|---|---|
