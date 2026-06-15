@@ -1,7 +1,17 @@
+import type { PortUnavailableReason } from '@arcturus/shared';
 import { Injectable } from '@nestjs/common';
 import { AppConfig } from '../../common/config/app-config';
 import { AppsRepository } from '../../infrastructure/persistence/repositories/apps.repository.port';
 import { PortProbeService } from './port-probe.service';
+
+/** Lowest non-privileged port; below this a non-root process can't bind anyway. */
+const MIN_MANUAL_PORT = 1024;
+const MAX_MANUAL_PORT = 65535;
+
+export interface PortAvailability {
+  available: boolean;
+  reason?: PortUnavailableReason;
+}
 
 /**
  * Hands out fixed host ports from the configured pool. A port sticks to its
@@ -36,5 +46,27 @@ export class PortAllocatorService {
     throw new Error(
       `Port pool exhausted (${start}-${end}); delete unused apps or widen ARCTURUS_PORT_POOL_*`,
     );
+  }
+
+  /**
+   * Validates a user-supplied host port for manual assignment. Unlike `allocate`
+   * the port can sit anywhere in 1024–65535, not just the pool — the live host
+   * bind probe is what keeps it safe. The app's own current port is always
+   * acceptable (no-op) and is skipped from the probe, since its own outgoing
+   * container legitimately still holds it (same false-positive that bans a
+   * sticky pre-probe on redeploy).
+   */
+  async validateManualPort(port: number, currentPort: number | null): Promise<PortAvailability> {
+    if (port === currentPort) return { available: true };
+    if (!Number.isInteger(port) || port < MIN_MANUAL_PORT || port > MAX_MANUAL_PORT) {
+      return { available: false, reason: 'outOfRange' };
+    }
+    if (port === this.config.gatewayPort || port === this.config.appsPort) {
+      return { available: false, reason: 'reserved' };
+    }
+    const taken = new Set(await this.apps.listAssignedPorts());
+    if (taken.has(port)) return { available: false, reason: 'taken' };
+    if (!(await this.probe.isFree(port))) return { available: false, reason: 'taken' };
+    return { available: true };
   }
 }

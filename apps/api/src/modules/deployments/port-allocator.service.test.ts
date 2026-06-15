@@ -9,8 +9,15 @@ function makeAllocator(options: {
   end: number;
   assigned?: number[];
   busy?: number[];
+  gatewayPort?: number;
+  appsPort?: number;
 }): PortAllocatorService {
-  const config = { portPoolStart: options.start, portPoolEnd: options.end } as AppConfig;
+  const config = {
+    portPoolStart: options.start,
+    portPoolEnd: options.end,
+    gatewayPort: options.gatewayPort ?? 7777,
+    appsPort: options.appsPort ?? 7778,
+  } as AppConfig;
   const apps = {
     listAssignedPorts: async () => options.assigned ?? [],
   } as AppsRepository;
@@ -54,5 +61,63 @@ describe('PortAllocatorService', () => {
   test('throws when the pool is exhausted', async () => {
     const allocator = makeAllocator({ start: 30000, end: 30001, assigned: [30000], busy: [30001] });
     await expect(allocator.allocate()).rejects.toThrow(/Port pool exhausted/);
+  });
+});
+
+describe('PortAllocatorService.validateManualPort', () => {
+  test('accepts a free, in-range port', async () => {
+    const allocator = makeAllocator({ start: 30000, end: 30999 });
+    expect(await allocator.validateManualPort(8080, null)).toEqual({ available: true });
+  });
+
+  test("accepts the app's own current port without probing", async () => {
+    // 9090 is both DB-assigned and busy, but it's this app's current port → no-op.
+    const allocator = makeAllocator({ start: 30000, end: 30999, assigned: [9090], busy: [9090] });
+    expect(await allocator.validateManualPort(9090, 9090)).toEqual({ available: true });
+  });
+
+  test('rejects ports below 1024 or above 65535', async () => {
+    const allocator = makeAllocator({ start: 30000, end: 30999 });
+    expect(await allocator.validateManualPort(80, null)).toEqual({
+      available: false,
+      reason: 'outOfRange',
+    });
+    expect(await allocator.validateManualPort(70000, null)).toEqual({
+      available: false,
+      reason: 'outOfRange',
+    });
+  });
+
+  test('rejects the reserved control/apps ports', async () => {
+    const allocator = makeAllocator({
+      start: 30000,
+      end: 30999,
+      gatewayPort: 7777,
+      appsPort: 7778,
+    });
+    expect(await allocator.validateManualPort(7777, null)).toEqual({
+      available: false,
+      reason: 'reserved',
+    });
+    expect(await allocator.validateManualPort(7778, null)).toEqual({
+      available: false,
+      reason: 'reserved',
+    });
+  });
+
+  test('rejects a port already assigned to another app in the DB', async () => {
+    const allocator = makeAllocator({ start: 30000, end: 30999, assigned: [8080] });
+    expect(await allocator.validateManualPort(8080, 30001)).toEqual({
+      available: false,
+      reason: 'taken',
+    });
+  });
+
+  test('rejects a port that is busy on the host', async () => {
+    const allocator = makeAllocator({ start: 30000, end: 30999, busy: [8080] });
+    expect(await allocator.validateManualPort(8080, null)).toEqual({
+      available: false,
+      reason: 'taken',
+    });
   });
 });

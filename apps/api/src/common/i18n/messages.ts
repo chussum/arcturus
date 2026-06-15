@@ -55,6 +55,11 @@ const en = {
     memoryPositive: 'Memory limit must be a positive integer (MB)',
     memoryExceedsMax: ({ max }: Record<string, unknown>) =>
       `Memory limit may not exceed ${max as number} MB`,
+    portContainerOnly: 'Manual port only applies to container apps',
+    portInteger: 'Port must be an integer',
+    portOutOfRange: 'Port must be between 1024 and 65535',
+    portReserved: 'That port is reserved by Arcturus',
+    portTaken: 'That port is already in use',
     noAssignedPort: 'App has no assigned port yet',
     ownerGone: 'App owner no longer exists',
     onlyContainerStopRestart: 'Only deployed container apps can be stopped or restarted',
@@ -157,6 +162,11 @@ const ko: typeof en = {
     memoryPositive: '메모리 한도는 양의 정수(MB)여야 합니다',
     memoryExceedsMax: ({ max }: Record<string, unknown>) =>
       `메모리 한도는 ${max as number} MB를 초과할 수 없습니다`,
+    portContainerOnly: '수동 포트는 컨테이너 앱에만 적용됩니다',
+    portInteger: '포트는 정수여야 합니다',
+    portOutOfRange: '포트는 1024에서 65535 사이여야 합니다',
+    portReserved: 'Arcturus가 예약한 포트입니다',
+    portTaken: '이미 사용 중인 포트입니다',
     noAssignedPort: '앱에 아직 포트가 할당되지 않았습니다',
     ownerGone: '앱 소유자가 더 이상 존재하지 않습니다',
     onlyContainerStopRestart: '실행 중인 컨테이너 앱만 중지하거나 재시작할 수 있습니다',

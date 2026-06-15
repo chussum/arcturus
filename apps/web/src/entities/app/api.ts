@@ -2,6 +2,7 @@ import type {
   AppSharing,
   AppSummary,
   DeploymentSummary,
+  PortCheckResponse,
   RouteMode,
   ShareableUser,
   UpdateAppSharingRequest,
@@ -65,6 +66,19 @@ export function setMemoryLimit(id: string, memoryLimitMb: number): Promise<{ ok:
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ memoryLimitMb }),
+  });
+}
+
+export function checkAppPort(id: string, port: number): Promise<PortCheckResponse> {
+  return postJson(`/api/apps/${id}/port/check`, { port });
+}
+
+/** port: a specific host port, or null to release the manual port and auto-allocate. */
+export function setAppPort(id: string, port: number | null): Promise<{ ok: true }> {
+  return apiFetch(`/api/apps/${id}/port`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ port }),
   });
 }
 

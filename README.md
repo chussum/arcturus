@@ -116,7 +116,7 @@ Path-prefix proxying (`/alice/blog`) breaks apps that reference assets by absolu
 
 1. **Prefix strip + `X-Forwarded-Prefix`** — apps with a configurable base path work as-is.
 2. **Referer fallback** — an unmatched request like `/static/app.js` is re-routed to the app the browser is currently viewing.
-3. **Dedicated port** — every container app gets a fixed port (`30000+`) with no base-path issues at all. New container apps default to the "redirect" mode (the gateway URL 302-redirects to the dedicated port); switch an app back to "proxy" on its detail page if you prefer path-based serving.
+3. **Dedicated port** — every container app gets a fixed port (`30000+`) with no base-path issues at all. New container apps default to the "redirect" mode (the gateway URL 302-redirects to the dedicated port); switch an app back to "proxy" on its detail page if you prefer path-based serving. The port is auto-assigned, but you can set a specific one (e.g. `8080`) from the app's **Port settings** — it checks the port is free before saving and recreates the container to bind it, or resets back to auto-assign.
 
 ## Configuration
 

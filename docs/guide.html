@@ -225,6 +225,7 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
         <div class="callout reveal">
           <p>New container apps default to the <strong>“redirect”</strong> routing mode — visitors are bounced to the dedicated port, so the base-path problem never appears.</p>
           <p>Prefer path-based serving? Switch the app to <strong>“proxy”</strong> in its detail page.</p>
+          <p>The dedicated port is auto-assigned, but <strong>Port settings</strong> on the app page lets you set a specific one (e.g. <code>8080</code>): it checks the port is free, recreates the container to bind it, and can reset back to auto-assign.</p>
         </div>
       </div>
     </section>

@@ -41,6 +41,7 @@ import {
   Eyebrow,
   Mono,
   Reveal,
+  Spinner,
   StatusBadge,
   SubNavBar,
   SubNavTitle,
@@ -48,6 +49,7 @@ import {
 } from '../../shared/ui';
 import { EnvEditor } from './env-editor';
 import { LogConsole } from './log-console';
+import { PortSettingsModal } from './port-settings-modal';
 
 const Page = styled.main`
   max-width: 1100px;
@@ -257,6 +259,41 @@ const IconButton = styled.button`
   }
 `;
 
+/** Extra-small chip button — sits inline next to a value (e.g. the dedicated port). */
+const XsButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 6px;
+  border: 1px solid ${colors.hairlineStrong};
+  background: transparent;
+  color: ${colors.textMuted};
+  font-family: ${fontStack.text};
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background ${motion.color}, border-color ${motion.color}, color ${motion.color};
+
+  &:hover:not(:disabled) {
+    background: ${colors.surface3};
+    border-color: ${colors.accent};
+    color: ${colors.text};
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: ${colors.accent};
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+`;
+
 const LogOverlayBackdrop = styled.div`
   position: fixed;
   inset: 0;
@@ -313,6 +350,7 @@ export function AppDetailWidget({ appId }: { appId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRollback, setConfirmRollback] = useState<DeploymentSummary | null>(null);
   const [logsFullscreen, setLogsFullscreen] = useState(false);
+  const [portModalOpen, setPortModalOpen] = useState(false);
   const isContainer = app?.type === 'container';
   const canManage = app?.viewerRole !== 'view';
   const canConfigure = app?.viewerRole === 'owner' || app?.viewerRole === 'admin';
@@ -473,10 +511,15 @@ export function AppDetailWidget({ appId }: { appId: string }) {
             {portUrl && (
               <>
                 <dt>{t.appDetail.dedicatedPort}</dt>
-                <dd>
+                <dd style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                   <a href={portUrl} target="_blank" rel="noreferrer">
                     {portUrl}
-                  </a>{' '}
+                  </a>
+                  {canManage && (
+                    <XsButton type="button" onClick={() => setPortModalOpen(true)}>
+                      {t.appDetail.portSettings}
+                    </XsButton>
+                  )}
                   <Caption as="span">{t.appDetail.dedicatedPortHint}</Caption>
                 </dd>
               </>
@@ -492,18 +535,21 @@ export function AppDetailWidget({ appId }: { appId: string }) {
             {isContainer && (
               <>
                 <dt>{t.appDetail.routing}</dt>
-                <dd>
-                  {app.routeMode === RouteMode.Proxy
-                    ? t.appDetail.pathProxy(app.path)
-                    : t.appDetail.redirectToPort(String(app.assignedPort ?? '—'))}{' '}
+                <dd style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span>
+                    {app.routeMode === RouteMode.Proxy
+                      ? t.appDetail.pathProxy(app.path)
+                      : t.appDetail.redirectToPort(String(app.assignedPort ?? '—'))}
+                  </span>
                   {canManage && (
-                    <TextButton
+                    <XsButton
                       type="button"
-                      busy={switchRoute.busy}
+                      disabled={switchRoute.busy}
                       onClick={() => void switchRoute.run()}
                     >
+                      {switchRoute.busy && <Spinner style={{ width: 10, height: 10 }} />}
                       {t.appDetail.switch}
-                    </TextButton>
+                    </XsButton>
                   )}
                 </dd>
                 <dt>{t.appDetail.memoryLimit}</dt>
@@ -622,6 +668,14 @@ export function AppDetailWidget({ appId }: { appId: string }) {
         onConfirm={() => confirmRollback && void rollback.run(confirmRollback.id)}
         onCancel={() => setConfirmRollback(null)}
       />
+      {isContainer && canManage && (
+        <PortSettingsModal
+          app={app}
+          open={portModalOpen}
+          onClose={() => setPortModalOpen(false)}
+          onSaved={refresh}
+        />
+      )}
 
       {logsFullscreen && (
         <LogOverlayBackdrop

@@ -2,6 +2,7 @@ import type {
   AppSharing,
   AppSummary,
   DeploymentSummary,
+  PortCheckResponse,
   RouteMode,
   ShareableUser,
   UpdateAppSharingRequest,
@@ -23,9 +24,17 @@ import {
   containerNameFor,
   imageTagFor,
 } from '../deployments/pipeline/container-deploy.strategy';
+import { PortAllocatorService } from '../deployments/port-allocator.service';
 import { assertValidEnv, buildContainerEnv, parseEnvColumn } from './container-env';
 
 type ViewerRole = 'owner' | 'admin' | 'manage' | 'view';
+
+/** Maps a port-unavailability reason to its localized error key. */
+const PORT_REASON_KEYS = {
+  outOfRange: 'apps.portOutOfRange',
+  reserved: 'apps.portReserved',
+  taken: 'apps.portTaken',
+} as const;
 
 // Priority order for deduplication: higher index wins.
 const ROLE_PRIORITY: ViewerRole[] = ['view', 'manage', 'owner', 'admin'];
@@ -45,6 +54,7 @@ export class AppsService {
     private readonly runtime: ContainerRuntime,
     private readonly envCrypto: EnvCryptoService,
     private readonly config: AppConfig,
+    private readonly ports: PortAllocatorService,
   ) {}
 
   private readonly logger = new Logger(AppsService.name);
@@ -185,6 +195,55 @@ export class AppsService {
       const owner = await this.requireOwner(app);
       await this.recreateContainer(
         { ...app, memoryLimitMb },
+        owner.username,
+        app.activeDeploymentId,
+      );
+    }
+  }
+
+  /** Checks whether a user-entered host port can be assigned to this container app. */
+  async checkPort(id: string, requester: UserRow, port: number): Promise<PortCheckResponse> {
+    const { app } = await this.requireManage(id, requester);
+    if (app.type !== AppType.Container) {
+      throw new LocalizedBadRequest('apps.portContainerOnly');
+    }
+    return this.ports.validateManualPort(port, app.assignedPort);
+  }
+
+  /**
+   * Sets the container app's dedicated host port. A number assigns that exact port
+   * (re-validated server-side — never trust the client's earlier check); null releases
+   * the manual port and auto-allocates a fresh one from the pool. A running container
+   * is recreated to bind the new port.
+   */
+  async updateAssignedPort(id: string, requester: UserRow, port: number | null): Promise<void> {
+    const { app } = await this.requireManage(id, requester);
+    if (app.type !== AppType.Container) {
+      throw new LocalizedBadRequest('apps.portContainerOnly');
+    }
+
+    let newPort: number;
+    if (port === null) {
+      newPort = await this.ports.allocate();
+    } else {
+      const result = await this.ports.validateManualPort(port, app.assignedPort);
+      if (!result.available) {
+        throw new LocalizedBadRequest(PORT_REASON_KEYS[result.reason ?? 'taken']);
+      }
+      newPort = port;
+    }
+
+    if (newPort === app.assignedPort) return;
+    await this.apps.update(app.id, { assignedPort: newPort });
+
+    // Recreate to rebind the port. runContainer removes the old container (freeing the
+    // old port) before binding the new one. If the new port is stolen in the race window
+    // this throws (no auto-reassign — a manual port is deliberate) and the app is left
+    // not-running; the caller surfaces the error and the user retries.
+    if (app.activeDeploymentId && app.containerId) {
+      const owner = await this.requireOwner(app);
+      await this.recreateContainer(
+        { ...app, assignedPort: newPort },
         owner.username,
         app.activeDeploymentId,
       );

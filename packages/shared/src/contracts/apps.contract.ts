@@ -42,6 +42,24 @@ export interface RollbackRequest {
   deploymentId: string;
 }
 
+/** Why a manually entered port can't be used. */
+export type PortUnavailableReason = 'outOfRange' | 'reserved' | 'taken';
+
+export interface PortCheckRequest {
+  port: number;
+}
+
+export interface PortCheckResponse {
+  available: boolean;
+  /** Present only when `available` is false. */
+  reason?: PortUnavailableReason;
+}
+
+export interface SetPortRequest {
+  /** A specific host port, or null to release the manual port and auto-allocate a fresh one. */
+  port: number | null;
+}
+
 export interface AppShareEntry {
   userId: string;
   username: string;

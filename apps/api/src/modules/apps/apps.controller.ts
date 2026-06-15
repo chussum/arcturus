@@ -2,7 +2,10 @@ import type {
   AppSharing,
   AppSummary,
   DeploymentSummary,
+  PortCheckRequest,
+  PortCheckResponse,
   RollbackRequest,
+  SetPortRequest,
   ShareableUser,
   UpdateAppRequest,
   UpdateAppSharingRequest,
@@ -113,6 +116,31 @@ export class AppsController {
       }
       await this.apps.updateMemoryLimit(id, user, body.memoryLimitMb);
     }
+    return { ok: true };
+  }
+
+  @Post(':id/port/check')
+  async checkPort(
+    @CurrentUser() user: UserRow,
+    @Param('id') id: string,
+    @Body() body: PortCheckRequest,
+  ): Promise<PortCheckResponse> {
+    if (typeof body.port !== 'number' || !Number.isInteger(body.port)) {
+      throw new LocalizedBadRequest('apps.portInteger');
+    }
+    return this.apps.checkPort(id, user, body.port);
+  }
+
+  @Put(':id/port')
+  async setPort(
+    @CurrentUser() user: UserRow,
+    @Param('id') id: string,
+    @Body() body: SetPortRequest,
+  ): Promise<{ ok: true }> {
+    if (body.port !== null && (typeof body.port !== 'number' || !Number.isInteger(body.port))) {
+      throw new LocalizedBadRequest('apps.portInteger');
+    }
+    await this.apps.updateAssignedPort(id, user, body.port);
     return { ok: true };
   }
 

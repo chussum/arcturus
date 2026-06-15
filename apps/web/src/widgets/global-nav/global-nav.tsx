@@ -49,6 +49,30 @@ const NavItem = styled(Link)<{ $active: boolean }>`
   }
 `;
 
+/** External nav link (docs/guide) — same type as NavItem, with a ↗ glyph signalling a new tab. */
+const NavExternalItem = styled.a`
+  ${font(typography.nav)}
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  color: ${colors.textMuted} !important;
+  transition: color ${motion.color};
+
+  svg {
+    color: ${colors.textFaint};
+    transition: color ${motion.color}, transform ${motion.fast};
+  }
+
+  &:hover {
+    color: ${colors.text} !important;
+  }
+  &:hover svg {
+    color: ${colors.accent};
+    transform: translate(1px, -1px);
+  }
+`;
+
 const RightCluster = styled.div`
   display: flex;
   align-items: center;
@@ -133,6 +157,12 @@ export function GlobalNav() {
     { href: '/settings/tokens', label: t.nav.tokens },
   ];
 
+  // Project docs (GitHub Pages), locale-matched, opened in a new tab.
+  const docsUrl =
+    locale === 'ko'
+      ? 'https://chussum.github.io/arcturus/ko/'
+      : 'https://chussum.github.io/arcturus/';
+
   return (
     <GlobalNavBar>
       <NavLinks>
@@ -144,6 +174,18 @@ export function GlobalNav() {
             {link.label}
           </NavItem>
         ))}
+        <NavExternalItem href={docsUrl} target="_blank" rel="noreferrer">
+          {t.nav.docs}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path
+              d="M4.5 2.5h5v5M9.5 2.5L3 9"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </NavExternalItem>
       </NavLinks>
       <RightCluster>
         <NavChip type="button" onClick={() => setLocale(locale === 'ko' ? 'en' : 'ko')}>
