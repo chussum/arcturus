@@ -27,19 +27,29 @@ export function parseEnvFile(filePath: string): Record<string, string> {
         `${filePath}: invalid env key "${key}" (letters, digits, _; not starting with a digit)`,
       );
     }
-    env[key] = unquote(withoutExport.slice(eq + 1).trim());
+    env[key] = normalizeEnvValue(withoutExport.slice(eq + 1));
   }
 
   return env;
 }
 
-/** Strips a single matching pair of surrounding quotes; leaves bare values untouched. */
-function unquote(value: string): string {
-  if (value.length >= 2) {
-    const first = value[0];
-    if ((first === '"' || first === "'") && value[value.length - 1] === first) {
-      return value.slice(1, -1);
-    }
+/**
+ * Normalizes a raw env value: trims surrounding whitespace and strips a
+ * whitespace-preceded inline comment (`val # note` → `val`). A `#` without
+ * preceding whitespace is part of the value (`#fff`, `ab#cd`, URL fragments
+ * are preserved). A value wrapped in matching single/double quotes keeps its
+ * inner content verbatim — a trailing comment after the closing quote is
+ * dropped — so quoting is the escape hatch for literal ` #` or edge spaces.
+ * Mirrors dotenv inline-comment semantics. Idempotent only for unquoted input,
+ * so apply exactly once at each input boundary (never re-normalize server-side).
+ */
+export function normalizeEnvValue(raw: string): string {
+  const trimmed = raw.trim();
+  const quote = trimmed[0];
+  if (quote === '"' || quote === "'") {
+    const close = trimmed.indexOf(quote, 1);
+    if (close !== -1) return trimmed.slice(1, close);
+    // Unterminated quote: fall through to unquoted handling.
   }
-  return value;
+  return trimmed.replace(/\s+#.*$/, '').trim();
 }

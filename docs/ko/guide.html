@@ -160,7 +160,7 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
           <pre data-copy='{ "name": "my-app" }'>{ "name": "my-app" }</pre>
         </div>
         <h3 class="reveal"><code>.env</code> 자동 등록 (컨테이너 앱)</h3>
-        <p class="reveal"><code>Dockerfile</code>이 있는 디렉터리를 배포하면, 옆에 있는 <code>.env</code> 파일을 읽어 변수들을 앱 환경 변수로 <strong>암호화 저장</strong>하고 컨테이너에 주입합니다 — 손으로 입력하는 것과 똑같이. 단, <strong>앱 최초 생성 시에만</strong> 적용되고, 재배포 때는 기존 env를 건드리지 않습니다(이후 변경은 <code>arcturus env</code> 또는 대시보드에서). 모든 <code>.env*</code> 파일(<code>.env</code>, <code>.env.local</code>, <code>.env.production</code> …)은 <strong>빌드 이미지에서 항상 제외</strong>되어 시크릿이 이미지 레이어에 남지 않습니다.</p>
+        <p class="reveal"><code>Dockerfile</code>이 있는 디렉터리를 배포하면, 옆에 있는 <code>.env</code> 파일을 읽어 변수들을 앱 환경 변수로 <strong>암호화 저장</strong>하고 컨테이너에 주입합니다 — 손으로 입력하는 것과 똑같이. 단, <strong>앱 최초 생성 시에만</strong> 적용되고, 재배포 때는 기존 env를 건드리지 않습니다(이후 변경은 <code>arcturus env</code> 또는 대시보드에서). 모든 <code>.env*</code> 파일(<code>.env</code>, <code>.env.local</code>, <code>.env.production</code> …)은 <strong>빌드 이미지에서 항상 제외</strong>되어 시크릿이 이미지 레이어에 남지 않습니다. 값은 읽으면서 정리됩니다: 앞뒤 공백을 잘라내고, 뒤에 붙은 인라인 주석(<code>TOKEN=abc # 메모</code>처럼 공백 뒤의 <code>#</code>)은 떼어냅니다 — 공백 없이 붙은 <code>#</code>(<code>#fff</code>, <code>ab#cd</code>, URL fragment)는 그대로 두고, 값을 따옴표로 감싸면 리터럴 <code> #</code>나 양끝 공백을 유지합니다. <code>arcturus env --set</code>도 동일하게 정리됩니다.</p>
         <h3 class="reveal"><code>arcturus deploy</code> 옵션</h3>
         <ul class="reveal">
           <li><code>--name &lt;appName&gt;</code> — 앱 이름 (기본값: <code>arcturus.json</code>의 <code>name</code>, 없으면 디렉터리 이름)</li>

@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import { ApiClient } from '../lib/api-client';
 import { loadCliConfig } from '../lib/config';
+import { normalizeEnvValue } from '../lib/env-file';
 import { findAppByName } from './shared';
 
 export function registerEnvCommand(program: Command): void {
@@ -27,7 +28,7 @@ export function registerEnvCommand(program: Command): void {
       for (const pair of options.set) {
         const separator = pair.indexOf('=');
         if (separator === -1) throw new Error(`--set expects KEY=value, got "${pair}"`);
-        env[pair.slice(0, separator)] = pair.slice(separator + 1);
+        env[pair.slice(0, separator).trim()] = normalizeEnvValue(pair.slice(separator + 1));
       }
       for (const key of options.unset) delete env[key];
 

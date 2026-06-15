@@ -98,7 +98,9 @@ export function EnvEditor({
   const save = useAsyncAction(
     async () => {
       const env = Object.fromEntries(
-        entries.filter((row) => row.key.trim() !== '').map((row) => [row.key.trim(), row.value]),
+        entries
+          .filter((row) => row.key.trim() !== '')
+          .map((row) => [row.key.trim(), row.value.trim()]),
       );
       await onSave(env);
       setDirty(false);
