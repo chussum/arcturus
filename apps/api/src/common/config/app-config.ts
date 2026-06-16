@@ -74,6 +74,14 @@ export class AppConfig {
   readonly containerUser = process.env.ARCTURUS_CONTAINER_USER ?? '';
 
   /**
+   * SSH/OS login surfaced in the dashboard's terminal-access hint, so the
+   * docker commands read `ssh://<this>@host` instead of a placeholder. Empty =
+   * the UI shows `<ssh-user>`. Not a secret — a convenience the operator opts
+   * into; it's the host login, not the Arcturus username.
+   */
+  readonly sshUser = process.env.ARCTURUS_SSH_USER ?? '';
+
+  /**
    * Express `trust proxy` setting for deployments behind a TLS-terminating
    * reverse proxy. Without it req.secure / req.ip / req.protocol see the proxy,
    * so Secure cookies are never set and rate limits key on the proxy's IP.

@@ -140,6 +140,7 @@ cp apps/web/.env.example apps/web/.env
 | `ARCTURUS_DEFAULT_MEMORY_MB` | `1024` | 컨테이너 기본 메모리 상한(대시보드에서 앱별 재설정) |
 | `ARCTURUS_MAX_MEMORY_MB` | `4096` | 앱별 메모리 제한이 넘을 수 없는 상한 |
 | `ARCTURUS_CONTAINER_USER` | — | 배포 컨테이너를 이 사용자로 강제 실행(예 `1000:1000`); 비우면 이미지의 `USER`를 따름 |
+| `ARCTURUS_SSH_USER` | — | 대시보드 터미널 접근 안내에 채워 넣을 SSH 로그인 계정(Arcturus 사용자명이 아니라 호스트 OS 계정); 비우면 `<ssh-user>` 자리표시자 표시 |
 | `ARCTURUS_CLI_DIST` | `apps/cli/dist/cli` | 서빙할 CLI 크로스컴파일 바이너리 위치 |
 | `ARCTURUS_DEV_ORIGINS` | — | `next dev` 추가 허용 origin |
 | `ARCTURUS_TRUST_PROXY` | — | TLS를 종단하는 리버스 프록시 뒤에서 운용할 때 설정(Express `trust proxy` 값, 예 `1`). 없으면 Secure 쿠키가 안 붙고 IP별 rate limit이 프록시 IP를 기준으로 잡힘 |

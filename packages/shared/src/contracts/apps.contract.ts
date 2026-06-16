@@ -27,6 +27,8 @@ export interface AppSummary {
   lastDeployedAt: string | null;
   /** Effective role of the requesting user for this app. */
   viewerRole: 'owner' | 'admin' | 'manage' | 'view';
+  /** Server's configured SSH login for the docker-access hint; '' if unset or for view-only users. */
+  sshUser: string;
 }
 
 export interface UpdateAppRequest {

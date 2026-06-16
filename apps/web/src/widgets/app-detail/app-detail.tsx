@@ -47,6 +47,7 @@ import {
   SubNavTitle,
   TextButton,
 } from '../../shared/ui';
+import { DockerAccessGuide } from './docker-access-guide';
 import { EnvEditor } from './env-editor';
 import { LogConsole } from './log-console';
 import { PortSettingsModal } from './port-settings-modal';
@@ -614,6 +615,16 @@ export function AppDetailWidget({ appId }: { appId: string }) {
         {isContainer && canManage && (
           <Reveal delay={210}>
             <EnvEditor app={app} onSave={(env) => updateAppEnv(app.id, env).then(refresh)} />
+          </Reveal>
+        )}
+
+        {isContainer && canManage && (
+          <Reveal delay={235}>
+            <DockerAccessGuide
+              ownerUsername={app.ownerUsername}
+              appName={app.name}
+              sshUser={app.sshUser}
+            />
           </Reveal>
         )}
 

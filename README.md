@@ -140,6 +140,7 @@ The secrets aren't in this table on purpose. `ARCTURUS_JWT_SECRET` and `ARCTURUS
 | `ARCTURUS_DEFAULT_MEMORY_MB` | `1024` | Default container memory cap (per-app override in the dashboard) |
 | `ARCTURUS_MAX_MEMORY_MB` | `4096` | Ceiling a per-app memory limit may not exceed |
 | `ARCTURUS_CONTAINER_USER` | — | Force deployed containers to run as this user (e.g. `1000:1000`); empty honors the image's `USER` |
+| `ARCTURUS_SSH_USER` | — | SSH login pre-filled in the dashboard's terminal-access hint (the host OS account, not an Arcturus username); empty shows a `<ssh-user>` placeholder |
 | `ARCTURUS_CLI_DIST` | `apps/cli/dist/cli` | Cross-compiled CLI binaries to serve |
 | `ARCTURUS_DEV_ORIGINS` | — | Extra allowed origins for `next dev` |
 | `ARCTURUS_TRUST_PROXY` | — | Set this when you run behind a TLS-terminating reverse proxy (an Express `trust proxy` value, e.g. `1`). Without it Secure cookies are never set and per-IP rate limits key on the proxy's IP |

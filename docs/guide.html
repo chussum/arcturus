@@ -195,6 +195,25 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
           <pre data-copy="arcturus logs my-app"><span class="accent">$</span> arcturus logs my-app    <span class="comment"># follow container logs</span>
 <span class="accent">$</span> arcturus destroy my-app <span class="comment"># delete the app</span></pre>
         </div>
+        <h3 class="reveal">Direct docker access from the terminal</h3>
+        <p class="reveal">For container apps you can reach the running container with the docker CLI — handy for tailing logs or poking around inside. Each container is named deterministically as <code>arcturus--&lt;username&gt;--&lt;app&gt;</code>, so there’s no ID to look up.</p>
+        <p class="reveal"><strong>On the host</strong> — SSH into the server, then:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="docker ps --filter label=arcturus.managed=true"><span class="accent">$</span> docker ps --filter label=arcturus.managed=true <span class="comment"># list every Arcturus app container</span>
+<span class="accent">$</span> docker logs -f arcturus--alice--my-app          <span class="comment"># follow one app’s logs</span>
+<span class="accent">$</span> docker exec arcturus--alice--my-app ls -al      <span class="comment"># run a one-off command</span>
+<span class="accent">$</span> docker exec -it arcturus--alice--my-app sh      <span class="comment"># open a shell inside</span></pre>
+        </div>
+        <p class="reveal"><strong>From your laptop, without logging in</strong> — point your local docker at the server over SSH and run the same commands. Replace <code>&lt;ssh-user&gt;</code> with your SSH login on the server (the OS account, not your Arcturus username):</p>
+        <div class="codeblock reveal">
+          <pre data-copy="export DOCKER_HOST=ssh://&lt;ssh-user&gt;@&lt;server&gt;"><span class="accent">$</span> export DOCKER_HOST=ssh://&lt;ssh-user&gt;@&lt;server&gt;   <span class="comment"># once per shell</span>
+<span class="accent">$</span> docker logs -f arcturus--alice--my-app          <span class="comment"># …now runs against the server</span>
+<span class="accent">$</span> ssh &lt;ssh-user&gt;@&lt;server&gt; docker logs -f arcturus--alice--my-app <span class="comment"># or a one-off, no setup</span></pre>
+        </div>
+        <div class="callout reveal">
+          <p>Needs the docker CLI on your laptop and SSH access that can run docker on the server. The shell must exist in the image — <code>sh</code> works for most bases, but <code>distroless</code>/<code>scratch</code> images have none. Containers run as the image’s <code>USER</code> (often root).</p>
+          <p>Set <code>ARCTURUS_SSH_USER</code> on the server and the dashboard’s terminal-access hint pre-fills your login in place of <code>&lt;ssh-user&gt;</code>.</p>
+        </div>
         <h3 class="reveal">Team accounts</h3>
         <p class="reveal">The admin issues <strong>invite links</strong> from the dashboard; members sign up through them and manage their own apps. Roles are simple: admin and member.</p>
         <h3 class="reveal">App sharing</h3>
@@ -254,6 +273,7 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
               <tr><td class="mono">ARCTURUS_KEEP_RELEASES</td><td class="default">5</td><td class="desc">Releases kept per app for rollback</td></tr>
               <tr><td class="mono">ARCTURUS_CLI_DIST</td><td class="default">apps/cli/dist/cli</td><td class="desc">Cross-compiled CLI binaries to serve</td></tr>
               <tr><td class="mono">ARCTURUS_DEV_ORIGINS</td><td class="default">—</td><td class="desc">Extra allowed origins for <code>next dev</code></td></tr>
+              <tr><td class="mono">ARCTURUS_SSH_USER</td><td class="default">—</td><td class="desc">SSH login pre-filled in the dashboard’s terminal-access hint (the host OS account, not an Arcturus username)</td></tr>
             </tbody>
           </table>
         </div>

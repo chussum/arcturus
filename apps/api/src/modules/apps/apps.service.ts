@@ -537,6 +537,7 @@ export class AppsService {
       createdAt: row.createdAt,
       lastDeployedAt: row.lastDeployedAt,
       viewerRole,
+      sshUser: viewerRole === 'view' ? '' : this.config.sshUser,
     };
   }
 }

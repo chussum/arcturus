@@ -71,6 +71,27 @@ const en = {
     show: 'Show CLI guide',
     hide: 'Hide',
   },
+  dockerGuide: {
+    eyebrow: 'TERMINAL',
+    title: 'Terminal access',
+    intro:
+      'Reach this container with the docker CLI — tail logs, run a command, or open a shell inside.',
+    show: 'Show docker commands',
+    hide: 'Hide',
+    onHostTitle: 'On the host',
+    onHostNote: 'SSH into the server, then run any of these:',
+    logsStep: 'Follow logs',
+    execStep: 'Run a command inside',
+    shellStep: 'Open a shell inside',
+    shellNote:
+      'The shell must exist in the image — sh works for most bases, but distroless/scratch images have none. Containers run as the image’s USER (often root).',
+    remoteTitle: 'From your laptop, without logging in',
+    remoteNote:
+      'Points your local docker at the server over SSH, so the same commands run there. Needs the docker CLI locally and SSH that can run docker on the server.',
+    remoteUserHint:
+      'Replace <ssh-user> with your SSH login on the server — the OS account you SSH in with, not your Arcturus username.',
+    remoteOneLiner: 'Or a one-off, no setup:',
+  },
   appDetail: {
     back: 'Apps',
     url: 'URL',
@@ -270,6 +291,26 @@ const ko: Messages = {
     tokenLink: 'API 토큰 만들기',
     show: 'CLI 가이드 보기',
     hide: '접기',
+  },
+  dockerGuide: {
+    eyebrow: 'TERMINAL',
+    title: '터미널 접근',
+    intro: 'docker CLI로 이 컨테이너에 바로 접근해요 — 로그 보기, 명령 실행, 내부 셸 진입.',
+    show: 'docker 명령 보기',
+    hide: '접기',
+    onHostTitle: '호스트에서',
+    onHostNote: '서버에 SSH로 접속한 뒤 아래 명령을 실행하세요:',
+    logsStep: '로그 팔로우',
+    execStep: '내부에서 명령 실행',
+    shellStep: '내부 셸 진입',
+    shellNote:
+      '이미지에 셸이 있어야 해요 — 대부분의 베이스는 sh가 되지만 distroless/scratch 이미지에는 셸이 없어요. 컨테이너는 이미지의 USER(보통 root)로 실행됩니다.',
+    remoteTitle: '서버에 로그인하지 않고 노트북에서',
+    remoteNote:
+      '로컬 docker를 SSH로 서버에 연결해, 같은 명령이 서버에서 실행되게 해요. 노트북에 docker CLI와 서버에서 docker를 실행할 수 있는 SSH 접근이 필요해요.',
+    remoteUserHint:
+      '<ssh-user>는 서버에 SSH로 접속하는 로그인 계정으로 바꾸세요 — Arcturus 사용자명이 아니라 SSH 접속 OS 계정이에요.',
+    remoteOneLiner: '또는 설정 없이 일회성:',
   },
   appDetail: {
     back: '앱',

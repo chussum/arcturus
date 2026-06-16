@@ -195,6 +195,25 @@ bun run server:restart"><span class="accent">$</span> bun run secrets:update
           <pre data-copy="arcturus logs my-app"><span class="accent">$</span> arcturus logs my-app    <span class="comment"># 컨테이너 로그 팔로우</span>
 <span class="accent">$</span> arcturus destroy my-app <span class="comment"># 앱 삭제</span></pre>
         </div>
+        <h3 class="reveal">터미널에서 docker 직접 접근</h3>
+        <p class="reveal">컨테이너 앱은 docker CLI로 실행 중인 컨테이너에 바로 접근할 수 있어요 — 로그를 보거나 내부를 둘러볼 때 편합니다. 컨테이너 이름은 항상 <code>arcturus--&lt;사용자명&gt;--&lt;앱&gt;</code> 형식으로 정해지므로 따로 ID를 찾을 필요가 없어요.</p>
+        <p class="reveal"><strong>호스트에서</strong> — 서버에 SSH로 접속한 뒤:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="docker ps --filter label=arcturus.managed=true"><span class="accent">$</span> docker ps --filter label=arcturus.managed=true <span class="comment"># Arcturus 앱 컨테이너 전체 목록</span>
+<span class="accent">$</span> docker logs -f arcturus--alice--my-app          <span class="comment"># 특정 앱 로그 팔로우</span>
+<span class="accent">$</span> docker exec arcturus--alice--my-app ls -al      <span class="comment"># 일회성 명령 실행</span>
+<span class="accent">$</span> docker exec -it arcturus--alice--my-app sh      <span class="comment"># 내부 셸 진입</span></pre>
+        </div>
+        <p class="reveal"><strong>서버에 로그인하지 않고 노트북에서</strong> — 로컬 docker를 SSH로 서버에 연결하면 같은 명령을 그대로 쓸 수 있어요. <code>&lt;ssh-user&gt;</code>는 서버에 SSH로 접속하는 로그인 계정(Arcturus 사용자명이 아니라 OS 계정)으로 바꾸세요:</p>
+        <div class="codeblock reveal">
+          <pre data-copy="export DOCKER_HOST=ssh://&lt;ssh-user&gt;@&lt;server&gt;"><span class="accent">$</span> export DOCKER_HOST=ssh://&lt;ssh-user&gt;@&lt;server&gt;   <span class="comment"># 셸마다 한 번</span>
+<span class="accent">$</span> docker logs -f arcturus--alice--my-app          <span class="comment"># …이제 서버 대상으로 실행</span>
+<span class="accent">$</span> ssh &lt;ssh-user&gt;@&lt;server&gt; docker logs -f arcturus--alice--my-app <span class="comment"># 또는 설정 없이 일회성</span></pre>
+        </div>
+        <div class="callout reveal">
+          <p>노트북에 docker CLI가 있어야 하고, 서버에서 docker를 실행할 수 있는 SSH 접근이 필요해요. 이미지에 셸이 있어야 합니다 — 대부분의 베이스는 <code>sh</code>가 되지만 <code>distroless</code>/<code>scratch</code> 이미지에는 셸이 없어요. 컨테이너는 이미지의 <code>USER</code>(보통 root)로 실행됩니다.</p>
+          <p>서버에 <code>ARCTURUS_SSH_USER</code>를 설정하면 대시보드의 터미널 접근 안내가 <code>&lt;ssh-user&gt;</code> 자리에 그 로그인 계정을 채워서 보여줘요.</p>
+        </div>
         <h3 class="reveal">팀 계정</h3>
         <p class="reveal">admin이 대시보드에서 <strong>초대 링크</strong>를 발급하면, 멤버는 그 링크로 가입해 자기 앱을 직접 관리합니다. 역할은 단순하게 admin과 member 둘뿐.</p>
         <h3 class="reveal">앱 공유</h3>
@@ -254,6 +273,7 @@ cp apps/web/.env.example apps/web/.env"><span class="accent">$</span> cp apps/ap
               <tr><td class="mono">ARCTURUS_KEEP_RELEASES</td><td class="default">5</td><td class="desc">앱별 롤백용 보관 릴리스 수</td></tr>
               <tr><td class="mono">ARCTURUS_CLI_DIST</td><td class="default">apps/cli/dist/cli</td><td class="desc">서빙할 크로스컴파일 CLI 바이너리 경로</td></tr>
               <tr><td class="mono">ARCTURUS_DEV_ORIGINS</td><td class="default">—</td><td class="desc"><code>next dev</code>에 추가 허용할 origin</td></tr>
+              <tr><td class="mono">ARCTURUS_SSH_USER</td><td class="default">—</td><td class="desc">대시보드 터미널 접근 안내에 채워 넣을 SSH 로그인 계정(Arcturus 사용자명이 아니라 호스트 OS 계정)</td></tr>
             </tbody>
           </table>
         </div>
