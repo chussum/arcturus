@@ -139,6 +139,7 @@ The secrets aren't in this table on purpose. `ARCTURUS_JWT_SECRET` and `ARCTURUS
 | `ARCTURUS_KEEP_RELEASES` | `5` | Releases kept per app for rollback |
 | `ARCTURUS_DEFAULT_MEMORY_MB` | `1024` | Default container memory cap (per-app override in the dashboard) |
 | `ARCTURUS_MAX_MEMORY_MB` | `4096` | Ceiling a per-app memory limit may not exceed |
+| `ARCTURUS_BUILD_MEMORY_MB` | `0` | Memory cap (MB) for the image **build** step, separate from the runtime cap. `0` = uncapped (build may use the full host RAM and swap). A framework build (e.g. Next.js) can briefly need several GB — far more than the app's runtime; if a build is OOM-killed, raise the host RAM/swap rather than the small runtime limit |
 | `ARCTURUS_CONTAINER_USER` | — | Force deployed containers to run as this user (e.g. `1000:1000`); empty honors the image's `USER` |
 | `ARCTURUS_SSH_USER` | — | SSH login pre-filled in the dashboard's terminal-access hint (the host OS account, not an Arcturus username); empty shows a `<ssh-user>` placeholder |
 | `ARCTURUS_CLI_DIST` | `apps/cli/dist/cli` | Cross-compiled CLI binaries to serve |

@@ -139,6 +139,7 @@ cp apps/web/.env.example apps/web/.env
 | `ARCTURUS_KEEP_RELEASES` | `5` | 앱별 롤백용 릴리스 보관 개수 |
 | `ARCTURUS_DEFAULT_MEMORY_MB` | `1024` | 컨테이너 기본 메모리 상한(대시보드에서 앱별 재설정) |
 | `ARCTURUS_MAX_MEMORY_MB` | `4096` | 앱별 메모리 제한이 넘을 수 없는 상한 |
+| `ARCTURUS_BUILD_MEMORY_MB` | `0` | 이미지 **빌드** 단계 메모리 상한(MB), 런타임 상한과 별개. `0`=무제한(빌드가 호스트 RAM·스왑 전체 사용). 프레임워크 빌드(예 Next.js)는 런타임보다 훨씬 많은 수 GB가 잠깐 필요 — 빌드가 OOM으로 죽으면 작은 런타임 한도가 아니라 호스트 RAM/스왑을 키워라 |
 | `ARCTURUS_CONTAINER_USER` | — | 배포 컨테이너를 이 사용자로 강제 실행(예 `1000:1000`); 비우면 이미지의 `USER`를 따름 |
 | `ARCTURUS_SSH_USER` | — | 대시보드 터미널 접근 안내에 채워 넣을 SSH 로그인 계정(Arcturus 사용자명이 아니라 호스트 OS 계정); 비우면 `<ssh-user>` 자리표시자 표시 |
 | `ARCTURUS_CLI_DIST` | `apps/cli/dist/cli` | 서빙할 CLI 크로스컴파일 바이너리 위치 |

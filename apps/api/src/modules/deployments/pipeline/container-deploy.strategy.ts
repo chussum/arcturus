@@ -62,9 +62,18 @@ export class ContainerDeployStrategy extends DeployStrategy {
     const memoryBytes = (app.memoryLimitMb ?? this.config.defaultMemoryMb) * 1024 * 1024;
     const user = this.config.containerUser || undefined;
 
+    // The build step is capped separately from the runtime container: framework
+    // builds peak far above the app's runtime footprint, so reusing the small
+    // runtime cap here OOM-kills the build. 0 (default) means no build cap — the
+    // build may use the full host RAM and swap.
+    const buildLimits =
+      this.config.buildMemoryMb > 0
+        ? { memoryBytes: this.config.buildMemoryMb * 1024 * 1024 }
+        : undefined;
+
     const imageTag = imageTagFor(owner.username, app.name, deploymentId);
     await log(`Building image ${imageTag}...`);
-    await this.runtime.buildImage(projectDir, imageTag, (line) => void log(line), { memoryBytes });
+    await this.runtime.buildImage(projectDir, imageTag, (line) => void log(line), buildLimits);
 
     await log('Starting container...');
     const runOptions = {

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import type { AppConfig } from '../../../common/config/app-config';
 import type {
+  BuildLimits,
   ContainerRuntime,
   RunContainerOptions,
 } from '../../../infrastructure/container-runtime/container-runtime.port';
@@ -17,12 +18,23 @@ import type { DeployContext } from './deploy-strategy';
 
 const PORT_CONFLICT = new Error('Bind for 0.0.0.0:30000 failed: port is already allocated');
 
-function makeHarness(runContainer: (options: RunContainerOptions) => Promise<string>) {
+function makeHarness(
+  runContainer: (options: RunContainerOptions) => Promise<string>,
+  configOverride: Partial<AppConfig> = {},
+) {
   const updates: UpdateAppData[] = [];
   const runCalls: RunContainerOptions[] = [];
+  const buildLimitsCalls: (BuildLimits | undefined)[] = [];
 
   const runtime = {
-    buildImage: async () => {},
+    buildImage: async (
+      _contextDir: string,
+      _imageTag: string,
+      _onOutput: (line: string) => void,
+      limits?: BuildLimits,
+    ) => {
+      buildLimitsCalls.push(limits);
+    },
     runContainer: async (options: RunContainerOptions) => {
       runCalls.push(options);
       return runContainer(options);
@@ -38,7 +50,13 @@ function makeHarness(runContainer: (options: RunContainerOptions) => Promise<str
 
   const deployments = { listByApp: async () => [] } as unknown as DeploymentsRepository;
   const ports = { allocate: async () => 30007 } as PortAllocatorService;
-  const config = { keepReleases: 5, defaultMemoryMb: 1024, containerUser: '' } as AppConfig;
+  const config = {
+    keepReleases: 5,
+    defaultMemoryMb: 1024,
+    buildMemoryMb: 0,
+    containerUser: '',
+    ...configOverride,
+  } as AppConfig;
   const envCrypto = { decrypt: (value: string) => value } as EnvCryptoService;
 
   const strategy = new ContainerDeployStrategy(
@@ -58,7 +76,7 @@ function makeHarness(runContainer: (options: RunContainerOptions) => Promise<str
     log: async () => {},
   };
 
-  return { strategy, context, updates, runCalls };
+  return { strategy, context, updates, runCalls, buildLimitsCalls };
 }
 
 describe('ContainerDeployStrategy port-conflict recovery', () => {
@@ -93,6 +111,37 @@ describe('ContainerDeployStrategy port-conflict recovery', () => {
 
     await expect(strategy.deploy(context)).rejects.toThrow(/already allocated/);
     expect(runCalls).toHaveLength(2);
+  });
+});
+
+describe('ContainerDeployStrategy build vs runtime memory', () => {
+  const ONE_MB = 1024 * 1024;
+
+  test('leaves the build uncapped by default while the runtime keeps its cap', async () => {
+    const { strategy, context, runCalls, buildLimitsCalls } = makeHarness(
+      async () => 'container-1',
+      { buildMemoryMb: 0 },
+    );
+
+    await strategy.deploy(context);
+
+    // No app-level limit set, so the runtime falls back to defaultMemoryMb (1024).
+    expect(runCalls[0]?.memoryBytes).toBe(1024 * ONE_MB);
+    // 0 = uncapped: the build receives no limits object at all.
+    expect(buildLimitsCalls).toEqual([undefined]);
+  });
+
+  test('caps the build independently of the (smaller) runtime limit', async () => {
+    const { strategy, context, runCalls, buildLimitsCalls } = makeHarness(
+      async () => 'container-1',
+      { buildMemoryMb: 8192 },
+    );
+
+    await strategy.deploy(context);
+
+    // Runtime stays at its own (much smaller) cap; the build gets the larger one.
+    expect(runCalls[0]?.memoryBytes).toBe(1024 * ONE_MB);
+    expect(buildLimitsCalls[0]?.memoryBytes).toBe(8192 * ONE_MB);
   });
 });
 

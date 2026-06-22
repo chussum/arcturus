@@ -67,6 +67,17 @@ export class AppConfig {
   readonly maxMemoryMb = readInt('ARCTURUS_MAX_MEMORY_MB', 4096);
 
   /**
+   * Memory cap (MB) applied to the *image build* step, kept separate from the
+   * runtime container cap. Framework builds (for example Next.js) briefly need
+   * far more memory than the app uses at runtime, so tying the build to the
+   * small runtime limit starves it and the OS OOM-kills it (SIGKILL). 0 = no cap:
+   * the build may use the full host RAM and swap. Builds are already bounded by
+   * the build timeout and run on the ICC-off network, so an uncapped default is
+   * safe; set this to a positive value to re-impose a ceiling on a shared host.
+   */
+  readonly buildMemoryMb = readInt('ARCTURUS_BUILD_MEMORY_MB', 0);
+
+  /**
    * When set (e.g. "1000:1000"), deployed containers are forced to run as this
    * user instead of the image default — a hardening opt-in. Empty = honor the
    * image's own USER (often root). Applies to both runtime and build.
