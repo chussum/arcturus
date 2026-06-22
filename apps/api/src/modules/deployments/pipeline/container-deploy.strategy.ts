@@ -136,9 +136,19 @@ export class ContainerDeployStrategy extends DeployStrategy {
     for (const deployment of history) {
       if (keep.has(deployment.id)) continue;
       const tag = imageTagFor(owner.username, app.name, deployment.id);
-      if (await this.runtime.imageExists(tag)) {
-        await this.runtime.removeImage(tag);
-        await log(`Pruned old release image ${tag}`);
+      // Pruning is best-effort housekeeping and runs AFTER the new container is
+      // already live, so a failure here must never fail the deploy. A legacy
+      // deployment id that pre-dates tag-safe id generation can form a reference
+      // the daemon rejects ("invalid reference format"); skip it and move on
+      // rather than letting it tear down a successful release.
+      try {
+        if (await this.runtime.imageExists(tag)) {
+          await this.runtime.removeImage(tag);
+          await log(`Pruned old release image ${tag}`);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        await log(`Skipped pruning ${tag}: ${message}`);
       }
     }
   }

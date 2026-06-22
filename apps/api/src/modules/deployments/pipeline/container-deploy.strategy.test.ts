@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { AppStatus } from '@arcturus/shared';
 import type { AppConfig } from '../../../common/config/app-config';
 import type {
   BuildLimits,
@@ -6,7 +7,11 @@ import type {
   RunContainerOptions,
 } from '../../../infrastructure/container-runtime/container-runtime.port';
 import type { EnvCryptoService } from '../../../infrastructure/crypto/env-crypto.service';
-import type { AppRow, UserRow } from '../../../infrastructure/persistence/drizzle/schema';
+import type {
+  AppRow,
+  DeploymentRow,
+  UserRow,
+} from '../../../infrastructure/persistence/drizzle/schema';
 import type {
   AppsRepository,
   UpdateAppData,
@@ -18,9 +23,16 @@ import type { DeployContext } from './deploy-strategy';
 
 const PORT_CONFLICT = new Error('Bind for 0.0.0.0:30000 failed: port is already allocated');
 
+interface PruneDeps {
+  history?: DeploymentRow[];
+  imageExists?: (tag: string) => Promise<boolean>;
+  removeImage?: (tag: string) => Promise<void>;
+}
+
 function makeHarness(
   runContainer: (options: RunContainerOptions) => Promise<string>,
   configOverride: Partial<AppConfig> = {},
+  prune: PruneDeps = {},
 ) {
   const updates: UpdateAppData[] = [];
   const runCalls: RunContainerOptions[] = [];
@@ -39,7 +51,8 @@ function makeHarness(
       runCalls.push(options);
       return runContainer(options);
     },
-    imageExists: async () => false,
+    imageExists: prune.imageExists ?? (async () => false),
+    removeImage: prune.removeImage ?? (async () => {}),
   } as unknown as ContainerRuntime;
 
   const apps = {
@@ -48,7 +61,9 @@ function makeHarness(
     },
   } as AppsRepository;
 
-  const deployments = { listByApp: async () => [] } as unknown as DeploymentsRepository;
+  const deployments = {
+    listByApp: async () => prune.history ?? [],
+  } as unknown as DeploymentsRepository;
   const ports = { allocate: async () => 30007 } as PortAllocatorService;
   const config = {
     keepReleases: 5,
@@ -142,6 +157,31 @@ describe('ContainerDeployStrategy build vs runtime memory', () => {
     // Runtime stays at its own (much smaller) cap; the build gets the larger one.
     expect(runCalls[0]?.memoryBytes).toBe(1024 * ONE_MB);
     expect(buildLimitsCalls[0]?.memoryBytes).toBe(8192 * ONE_MB);
+  });
+});
+
+describe('ContainerDeployStrategy image pruning', () => {
+  test('a prune failure on a legacy image does not fail the deploy', async () => {
+    // A deployment from before tag-safe ids whose tag the daemon now rejects.
+    const legacy = { id: 'legacy-bad-', appId: 'app-1', status: 'failed' } as DeploymentRow;
+    const { strategy, context, updates } = makeHarness(
+      async () => 'container-1',
+      {},
+      {
+        history: [legacy],
+        imageExists: async () => {
+          throw new Error('(HTTP code 400) unexpected - invalid reference format');
+        },
+      },
+    );
+
+    // Pruning runs after the new container is already live, so its failure must
+    // not propagate and flip the deploy to Failed.
+    await expect(strategy.deploy(context)).resolves.toBeUndefined();
+    expect(updates.at(-1)).toMatchObject({
+      status: AppStatus.Running,
+      containerId: 'container-1',
+    });
   });
 });
 
